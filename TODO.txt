@@ -36,7 +36,7 @@ unterstützung unterschieldiche sprachen
 
 custom begrüßungsnachricht
 
-spamm protection
+spam protection
 
 commands nur für bestimmte rollen/owner vom bot
 

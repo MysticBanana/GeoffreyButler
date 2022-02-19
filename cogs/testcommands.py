@@ -12,5 +12,7 @@ class GeoffreyCommands(commands.Cog):
     async def test(self, ctx):
         pass
 
+    # TODO: rpg
+
 def setup(bot):
     bot.add_cog(GeoffreyCommands(bot))

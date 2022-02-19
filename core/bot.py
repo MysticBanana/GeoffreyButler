@@ -32,7 +32,13 @@ class Geoffrey(commands.Bot):
             pass
 
         if type(exception) == commands.CommandInvokeError:
-            print("i messed up sowwy")
+            print("i messed up sorry")
+
+    async def on_message(self, message):
+        if message.author.bot or not message.guild:
+            return
+        # TODO: spam protection
+        await self.process_commands(message)
 
     def run(self):
         super().run(self.token)
