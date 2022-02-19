@@ -1,0 +1,44 @@
+configloader
+
+log erzeugen
+    jeden tag
+    komprimieren (nach ca einer woche)
+
+userlevel
+    exponentiell steigend
+    voice zeit
+
+rolepole
+
+channel dynamisch erstellen
+    neue voice channel erstellen, wenn alte voll
+
+poles
+    statistiken anzeigen (als bild)
+    --> bildgenerator
+
+rpg
+    in form text messenger
+    je nach reaktion unterschiedlicher verlauf
+    privater chat
+
+trivia quiz
+    event -> punkte
+    leaderboard
+
+bei serverbeitritt des bots features aussuchen
+    pole -> aussuchen
+
+hilfe für erstellung von channels (guide)
+
+unterstützung unterschieldiche sprachen
+    englisch standard
+
+custom begrüßungsnachricht
+
+spamm protection
+
+commands nur für bestimmte rollen/owner vom bot
+
+moderation
+    bannen/timeout mit gründen (erstellbar) und länge je nach grund
