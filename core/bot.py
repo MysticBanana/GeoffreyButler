@@ -38,6 +38,7 @@ class Geoffrey(commands.Bot):
         if message.author.bot or not message.guild:
             return
         # TODO: spam protection
+
         await self.process_commands(message)
 
     def run(self):
