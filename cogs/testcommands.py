@@ -6,12 +6,9 @@ class GeoffreyCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_check(self, ctx):
-        pass
-
     @commands.command(name="test", description="testing")
     async def test(self, ctx):
-        pass
+        self.bot.SERVERS[ctx.message.guild.id].config["test"] = str(ctx.message.author.name)
 
     @commands.command(name="rpgStart", description="starting a RPG text-message-like adventure in DM")
     async def rpgStart(self, user):
