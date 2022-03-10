@@ -28,6 +28,7 @@ class Geoffrey(commands.Bot):
         self.config.read(self.project_root.joinpath(f"{self.conf}.local"))
 
         self.token = self.config.get("DEFAULT", "token")
+        self.command_prefix = self.config.get("DEFAULT", "prefix", fallback="?")
         self.dev_mode = self.config.getboolean("DEFAULT", "dev_mode", fallback=False)
 
         self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
