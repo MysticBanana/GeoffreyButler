@@ -1,1 +1,1 @@
-from . import bot
+from .bot import Geoffrey

@@ -5,25 +5,35 @@ from discord.ext import tasks, commands
 from pathlib import Path
 import datetime
 import data
+from configparser import ConfigParser
+import helper
+import logging
 
 
 class Geoffrey(commands.Bot):
-    project_root = Path(__file__).parent.parent
+    project_root: Path
+    conf = "conf.ini"
     VERSION = 1.0
 
     # all server configloader are saved in it
     SERVERS = dict()
 
-    def __init__(self, command_prefix="?", **options):
-        super().__init__(command_prefix, **options)
+    def __init__(self, command_prefix="?", **kwargs):
+        super().__init__(command_prefix, **kwargs)
 
+        self.project_root = kwargs.get("root_dir", Path(__file__).parent)
+
+        self.config = ConfigParser()
+        self.config.read(self.project_root.joinpath(self.conf))
+        self.config.read(self.project_root.joinpath(f"{self.conf}.local"))
+
+        self.token = self.config.get("DEFAULT", "token")
+        self.dev_mode = self.config.getboolean("DEFAULT", "dev_mode", fallback=False)
+
+        self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
+
+        # setup your commands
         cogs.testcommands.setup(self)
-
-        with open(os.path.join(self.project_root, "TOKEN.txt"), "r") as token_file:
-            self.token = token_file.read().strip()
-
-        # todo create proper logging
-
 
     async def on_message(self, message):
         if message.author.bot or not message.guild:
@@ -39,10 +49,17 @@ class Geoffrey(commands.Bot):
         await self.change_presence(activity=discord.Game(name=f'{self.command_prefix}help || Version: {self.VERSION}'))
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
+        self.logger.info("Successfully loaded")
+
+    def add_cog(self, cog):
+        super(Geoffrey, self).add_cog(cog)
+        self.logger.info(f"Cog {cog.qualified_name} loaded")
 
     async def on_command_error(self, context, exception):
         if context.message:
             await context.message.delete()
+
+        self.logger.error(exception)
 
         # Cooldown on command triggered
         if type(exception) == commands.CommandOnCooldown:
@@ -53,7 +70,6 @@ class Geoffrey(commands.Bot):
 
     def run(self):
         super().run(self.token)
-
 
 
 if __name__ == "__main__":

@@ -130,3 +130,6 @@ dmypy.json
 
 TOKEN.txt
 json
+
+# local config files
+.local
