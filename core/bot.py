@@ -32,6 +32,7 @@ class Geoffrey(commands.Bot):
         self.dev_mode = self.config.getboolean("DEFAULT", "dev_mode", fallback=False)
 
         self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
+        self.logger.info("Loaded basic setup")
 
         # setup your commands
         cogs.testcommands.setup(self)
@@ -42,7 +43,7 @@ class Geoffrey(commands.Bot):
 
         guild_id = message.guild.id
         if guild_id not in list(self.SERVERS.keys()):
-            self.SERVERS[guild_id] = data.ConfigHandler(self, guild_id)
+            self.SERVERS[guild_id] = data.ConfigHandler(self, message.guild)
 
         await self.process_commands(message)
 
@@ -51,6 +52,8 @@ class Geoffrey(commands.Bot):
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
         self.logger.info("Successfully loaded")
+        self.logger.info(f"Online | prefix:{self.command_prefix}")
+        print("ready")
 
     def add_cog(self, cog):
         super(Geoffrey, self).add_cog(cog)

@@ -1,8 +1,40 @@
-configloader
+-----
+Channel logic to create/setup channel with user given events
 
-log erzeugen
-    jeden tag
-    komprimieren (nach ca einer woche)
+Action
+{
+	"id": 1,
+	"name": "sendMessage"
+}
+
+Event (Actions customizable)
+{
+	"id": 1,
+	"name": "onJoin"
+	"action": [
+		1
+	]
+}
+
+ReactionEvent (few predefinde and other self)
+{
+	"id": 1,
+	"name": "accept"
+	"action": [1]
+	"reaction": "reactionName"
+}
+
+Channel (add events)
+{
+	"id": 123,
+	"name": "channelName"
+	"events": [1],
+	"allowedRolls": [], // all roles access to this channel | if empty -> @everyone
+	"deniedRolls": [], // all roles and @everyone possible too
+	"onClickEvents": [1]
+}
+
+-----
 
 userlevel
     exponentiell steigend

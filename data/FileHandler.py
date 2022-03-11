@@ -17,13 +17,14 @@ class FileHandler:
         exists_ok: bool = True
         loader_type: LoaderType = LoaderType.JSON
 
+    _config: Config = None
 
     def __init__(self, path: Path = None, config: Config = None, config_type: LoaderType = None):
         self.loader_function = {
             "json": [self.load_json, self.dump_json]
         }
 
-        self.config = config if config else self.Config()
+        self._config = config if config else self.Config()
         self._path = path
 
         self._mode = "r+"
@@ -92,6 +93,14 @@ class FileHandler:
         # saves the new content if autosave
         if self.config.auto_save:
             self.flush()
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, value):
+        self._config = value
 
     @property
     def content(self):
