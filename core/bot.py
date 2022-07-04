@@ -8,6 +8,10 @@ import data
 from configparser import ConfigParser
 import helper
 import logging
+import importlib.util
+import importlib.machinery
+from typing import Tuple, List, Union, Callable
+import inspect
 
 
 class Geoffrey(commands.Bot):
@@ -18,12 +22,16 @@ class Geoffrey(commands.Bot):
     # all server configloader are saved in it
     SERVERS = dict()
 
+    # where all plugins getting stored (python packages)
+    PLUGINS = []
+
     def __init__(self, command_prefix="?", **kwargs):
         super().__init__(command_prefix, **kwargs)
 
         self.project_root = kwargs.get("root_dir", Path(__file__).parent)
 
         self.config = ConfigParser()
+
         self.config.read(self.project_root.joinpath(self.conf))
         self.config.read(self.project_root.joinpath(f"{self.conf}.local"))
 
@@ -34,8 +42,32 @@ class Geoffrey(commands.Bot):
         self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
         self.logger.info("Loaded basic setup")
 
+        if not self.project_root.joinpath(f"{self.conf}.local").is_file():
+            self.logger.critical("local config is not created!")
+
         # setup your commands
-        cogs.testcommands.setup(self)
+        cogs.example_cog.setup(self)
+
+    async def load_plugins(self):
+        plugin_path = self.project_root.joinpath(self.config.get("FILES", "plugins"))
+
+        if not plugin_path.is_dir():
+            return
+
+        # iterate through all modules in the plugins folder
+        for module in plugin_path.iterdir():
+            await self.load_plugin(plugin_path, module.stem)
+
+    async def load_plugin(self, plugin_path, name: str):
+        loader_details: Tuple = (
+            importlib.machinery.SourceFileLoader,
+            importlib.machinery.SOURCE_SUFFIXES
+        )
+
+        plugin_finder = importlib.machinery.FileFinder(str(plugin_path), loader_details)
+        spec = plugin_finder.find_spec(name)
+
+        self._load_from_module_spec(spec, name)
 
     async def on_message(self, message):
         if message.author.bot or not message.guild:
@@ -53,6 +85,11 @@ class Geoffrey(commands.Bot):
             self.uptime = datetime.datetime.utcnow()
         self.logger.info("Successfully loaded")
         self.logger.info(f"Online | prefix:{self.command_prefix}")
+
+        self.logger.info("Loading Plugins")
+        await self.load_plugins()
+        self.logger.info("Plugins loaded")
+
         print("ready")
 
     def add_cog(self, cog):

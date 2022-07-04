@@ -1,1 +1,1 @@
-from . import testcommands
+from . import example_cog

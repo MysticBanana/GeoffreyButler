@@ -60,6 +60,7 @@ class FileHandler:
         if not content:
             return dict()
         return json.loads(content)
+
     def dump_json(self):
         return json.dumps(self._file_data)
 
