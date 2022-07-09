@@ -8,7 +8,7 @@ class GeoffreyCommands(commands.Cog):
 
     @commands.command(name="test", description="testing")
     async def test(self, ctx):
-        self.bot.SERVERS[ctx.message.guild.id].config["test"] = str(ctx.message.author.name)
+        print("hello")
 
     @commands.command(name="initialise", description="initialise the bot")
     async def initialise(self):

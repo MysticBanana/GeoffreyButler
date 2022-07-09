@@ -1,6 +1,7 @@
 import os, copy, json, sys, enum, dataclasses
 from pathlib import Path
 import logging
+from typing import Dict, List, Any, Tuple
 
 
 class LoaderType(enum.Enum):
@@ -62,7 +63,7 @@ class FileHandler:
         return json.loads(content)
 
     def dump_json(self):
-        return json.dumps(self._file_data)
+        return json.dumps(self._file_data, ensure_ascii=False, indent=4)
 
     # let you access a json file: FileHandler["somekey"]
     def __getitem__(self, item):
@@ -94,6 +95,10 @@ class FileHandler:
         # saves the new content if autosave
         if self.config.auto_save:
             self.flush()
+
+    def update(self, data: Dict):
+        if self.config.loader_type == LoaderType.JSON:
+            self._file_data.update(data)
 
     @property
     def config(self):

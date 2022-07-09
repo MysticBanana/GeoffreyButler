@@ -2,33 +2,50 @@ import os
 from . import FileHandler
 from pathlib import Path
 import helper
-from discord import guild as _guild
 
 
 class ConfigHandler:
     server_config_name = "server.json"
+    _exists = False
 
-    def __init__(self, bot, guild: _guild.Guild):
+    def __init__(self, bot, guild):
         self.bot = bot
+        self.guild = guild
 
-        self.path: Path = Path(os.path.join(os.path.join(bot.project_root, "json"), str(guild.id)))
+        self.path: Path = bot.project_root / "json" / str(guild.guild_id)
         self.path.mkdir(parents=True, exist_ok=True)
 
         self.logger = helper.Logger().get_logger(self.__class__.__name__)
-        self.logger.info(f"Loading guild {guild.name} Id: {guild.id}")
 
-        self.config: FileHandler.FileHandler = FileHandler.FileHandler(Path.joinpath(self.path, self.server_config_name))
-        self.config.set("id", guild.id)
-        self.config.set("name", guild.name)
+        if (self.path / self.server_config_name).is_file():
+            self._exists = True
+
+        self.config: FileHandler.FileHandler = FileHandler.FileHandler(
+            Path.joinpath(self.path, self.server_config_name))
+
+        self.logger.info(f"Loading guild {guild.name} Id: {guild.guild_id}")
+
+        self.config.update(guild.jsonify())
+
         self.config.config.auto_save = bot.config.get("FILES", "auto_save", fallback=False)
         self.logger.info(f'Autosave {bot.config.get("FILES", "auto_save", fallback=False)}')
 
+    def flush(self):
+        self.config.update(self.guild.jsonify())
+        self.config.flush()
 
+    def exists(self) -> bool:
+        return self._exists
 
+    @staticmethod
+    def guild_data_from_id(bot, guild_id: int):
+        path: Path = bot.project_root / "json" / str(guild_id)
 
-        # you can also modify the server_config file like this
-        # self.config["channels"] = {"rule": 1234}
+        if not (path / ConfigHandler.server_config_name).is_file():
+            return
 
+        config: FileHandler.FileHandler = FileHandler.FileHandler(
+            Path.joinpath(path, ConfigHandler.server_config_name))
 
-
+        return config.content
 
