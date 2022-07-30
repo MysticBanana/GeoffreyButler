@@ -1,19 +1,20 @@
 import discord
 from discord.ext import commands
+from core import botbase
 
 
 class GeoffreyCommands(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: botbase.BotBase):
+        self.bot: botbase.BotBase = bot
 
     @commands.command(name="test", description="testing")
     async def test(self, ctx):
-        print("hello")
+        await self.bot.responses.send(ctx.channel, content="test", title="test")
 
     @commands.command(name="initialise", description="initialise the bot")
-    async def initialise(self):
+    async def initialise(self, ctx):
         print("initialising")
 
 
-def setup(bot):
-    bot.add_cog(GeoffreyCommands(bot))
+async def setup(bot):
+    await bot.add_cog(GeoffreyCommands(bot))

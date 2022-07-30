@@ -11,5 +11,5 @@ class SampleExt(commands.Cog):
         print("sample-ext")
 
 
-def setup(bot):
-    bot.add_cog(SampleExt(bot))
+async def setup(bot):
+    await bot.add_cog(SampleExt(bot))

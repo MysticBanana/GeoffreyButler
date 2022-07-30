@@ -11,19 +11,17 @@ from collections import defaultdict
 class GuildData:
     guild_id: int
     name: str
-    system_channel_id: int
 
     users: Dict[int, Any]
 
     # used to store extension specific data
     extension: Dict[str, Any]
 
-    __slots__ = ("guild_id", "name", "system_channel_id", "users", "extension")
+    __slots__ = ("guild_id", "name", "users", "extension")
 
-    def __init__(self, guild_id, name, system_channel_id, **kwargs):
+    def __init__(self, guild_id, name, **kwargs):
         self.guild_id = guild_id
         self.name = name
-        self.system_channel_id = system_channel_id
 
         self.users = kwargs.get("users", {})
         self.extension = kwargs.get("extension", {})
@@ -43,11 +41,9 @@ class GuildData:
 class Guild:
     guild_data: GuildData
 
-    def __init__(self, bot, guild_id: int = None, name: str = None, system_channel_id: int = None,
-                 guild_data: GuildData = None, **kwargs):
+    def __init__(self, bot, guild_id: int = None, name: str = None, guild_data: GuildData = None, **kwargs):
         self.bot = bot
-        self.guild_data = guild_data if guild_data is not None else GuildData(guild_id, name, system_channel_id,
-                                                                              **kwargs)
+        self.guild_data = guild_data if guild_data is not None else GuildData(guild_id, name, **kwargs)
 
         self.config_handler = ConfigHandler(bot, self)
 
@@ -78,7 +74,7 @@ class Guild:
 
     @staticmethod
     def from_guild(bot, guild: discord.guild.Guild) -> "Guild":
-        return Guild(bot, guild.id, guild.name, guild.system_channel.id)
+        return Guild(bot, guild.id, guild.name)
 
     @staticmethod
     def from_guild_id(bot, guild_id: int) -> "Guild":

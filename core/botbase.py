@@ -8,6 +8,7 @@ from collections import defaultdict
 import helper
 import importlib.util
 import importlib.machinery
+from . import messages
 
 
 class BotBase(commands.Bot):
@@ -17,6 +18,8 @@ class BotBase(commands.Bot):
     GUILDS: Dict[int, Guild] = {}
 
     conf = "conf.ini"
+
+    responses: messages.MessageController
 
     @property
     def guilds(self) -> Dict[int, Guild]:
@@ -35,7 +38,10 @@ class BotBase(commands.Bot):
         BotBase.ROOT = value
 
     def __init__(self, command_prefix: str = "?", *args, **kwargs):
-        super().__init__(command_prefix, *args, **kwargs)
+
+        intents = discord.Intents.all()
+
+        super().__init__(command_prefix, intents=intents, *args, **kwargs)
 
         self.project_root = kwargs.get("root_dir", Path(__file__).parent)
 
@@ -52,6 +58,9 @@ class BotBase(commands.Bot):
         self.logger.info("Loaded basic setup")
 
         self.load_guilds_from_config()
+
+        self.logger.info("loading message controller")
+        self.responses = messages.MessageController(self)
 
     def load_guilds_from_config(self):
         """
@@ -93,7 +102,7 @@ class BotBase(commands.Bot):
         plugin_finder = importlib.machinery.FileFinder(str(path), loader_details)
         spec = plugin_finder.find_spec(name)
 
-        self._load_from_module_spec(spec, name)
+        await self._load_from_module_spec(spec, name)
         self.logger.info(f"Done")
 
     def register_guild(self, guild: discord.Guild):
@@ -102,6 +111,9 @@ class BotBase(commands.Bot):
          - adding the guild to config if new
          - adding the guild to `GUILDS`
         """
+
+        if guild is None:
+            return
 
         _guild = Guild.from_guild(self, guild)
         self.load_guild(_guild)
@@ -115,9 +127,9 @@ class BotBase(commands.Bot):
             return True
         return False
 
-    def add_cog(self, cog):
-        super(BotBase, self).add_cog(cog)
-        self.logger.info(f"Cog {cog.qualified_name} loaded")
+    #  def add_cog(self, cog):
+    #     await super(BotBase, self).add_cog(cog)
+    #     self.logger.info(f"Cog {cog.qualified_name} loaded")
 
     async def on_command_error(self, context, exception):
         if context.message:
@@ -132,5 +144,5 @@ class BotBase(commands.Bot):
         if type(exception) == commands.CommandInvokeError:
             print("i messed up sorry")
 
-    def run(self):
-        super().run(self.token)
+    def run(self, **kwargs):
+        super().run(self.token, **kwargs)

@@ -17,6 +17,12 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        """
+        THIS DOES NOT OVERWRITE THE ON_MESSAGE COMMAND
+
+        following lines will be executed as well and do not affect the command execution
+        """
+
         if message.author.bot or not message.guild:
             return
 
@@ -25,9 +31,6 @@ class Events(commands.Cog):
         if not self.bot.is_guild_registered(guild_id):
             self.bot.register_guild(message.guild)
 
-        await self.bot.process_commands(message)
 
-
-
-def setup(bot: botbase.BotBase):
-    bot.add_cog(Events(bot))
+async def setup(bot: botbase.BotBase):
+    await bot.add_cog(Events(bot))
