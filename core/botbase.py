@@ -20,7 +20,7 @@ class BotBase(commands.Bot):
     conf = "conf.ini"
 
     responses: messages.MessageController
-    audio_controller: Dict[discord.Guild, audio.Controller]
+    audio_controller: Dict[discord.Guild, audio.Controller] = {}
 
     @property
     def guilds(self) -> Dict[int, Guild]:
@@ -84,7 +84,10 @@ class BotBase(commands.Bot):
         if guild in self.audio_controller:
             return self.audio_controller.get(guild)
 
-        return audio.Controller(self, guild)
+        controller = audio.Controller(self, guild)
+        self.audio_controller[guild] = controller
+
+        return controller
 
     async def load_plugins(self):
         self.logger.info("Loading Plugins")

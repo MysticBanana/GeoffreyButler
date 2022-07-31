@@ -7,9 +7,11 @@ import discord
 
 class Track:
     url: str
+    loaded: bool
 
     def __init__(self, url, *args, **kwargs):
         self.url = url
+        self.loaded = False
 
     def load(self):
         """loads additional information for track"""
@@ -47,11 +49,15 @@ class Playlist:
         self.settings = settings
 
     @property
-    def current_track(self) -> Track:
+    def current_track(self) -> Optional[Track]:
+        if not len(self.track_list) > 0:
+            return None
         return self.track_list[0]
 
     @property
-    def previous_track(self) -> Track:
+    def previous_track(self) -> Optional[Track]:
+        if len(self.track_history) > 0:
+            return None
         return self.track_history[-1]
 
     def next(self) -> Track:
