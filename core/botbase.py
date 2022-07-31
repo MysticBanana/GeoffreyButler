@@ -8,7 +8,7 @@ from collections import defaultdict
 import helper
 import importlib.util
 import importlib.machinery
-from . import messages
+from . import messages, audio
 
 
 class BotBase(commands.Bot):
@@ -20,6 +20,7 @@ class BotBase(commands.Bot):
     conf = "conf.ini"
 
     responses: messages.MessageController
+    audio_controller: Dict[discord.Guild, audio.Controller]
 
     @property
     def guilds(self) -> Dict[int, Guild]:
@@ -76,6 +77,14 @@ class BotBase(commands.Bot):
                 continue
 
             self.load_guild(Guild.from_guild_id(self, guild_id))
+
+    def get_audio_controller(self, guild: discord.Guild) -> audio.Controller:
+        """Returns an audio controller object for a guild"""
+
+        if guild in self.audio_controller:
+            return self.audio_controller.get(guild)
+
+        return audio.Controller(self, guild)
 
     async def load_plugins(self):
         self.logger.info("Loading Plugins")
