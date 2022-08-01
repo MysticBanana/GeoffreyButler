@@ -27,7 +27,9 @@ class YoutubeCog(commands.Cog):
 
     @commands.command(name="leave", description="leaves the channel again")
     async def leave(self, ctx):
-        pass
+        audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+
+        await audio_controller.disconnect()
 
     @commands.command(name="play", description="plays music/sound from a given link or name")
     async def play(self, ctx, *, url: str):
@@ -50,20 +52,13 @@ class YoutubeCog(commands.Cog):
 
         audio_controller.on_next()
 
-    @commands.command(name="play2", description="plays music/sound from a given link or name")
-    async def play2(self, ctx, url):
-        YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-        FFMPEG_OPTIONS = {
-            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+    @commands.command(name="prev", description="plays the previous song")
+    async def prev(self, ctx):
+        audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        audio_controller.guild.voice_client.stop()
 
-        voice = get(self.bot.voice_clients, guild=ctx.guild)
-
-        with YoutubeDL(YDL_OPTIONS) as ydl:
-            info = ydl.extract_info(url, download=False)
-        URL = info['url']
-        voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
-        voice.is_playing()
-        await ctx.send('Bot is playing')
+        audio_controller.playlist.prev()
+        await audio_controller.play_wrapper()
 
     @commands.command(name='pause', help='This command pauses the song')
     async def pause(self, ctx):
