@@ -130,4 +130,4 @@ dmypy.json
 /json
 
 # local config files
-.local
+*.local
