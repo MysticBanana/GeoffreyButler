@@ -7,7 +7,7 @@ from discord.utils import get
 from discord import FFmpegPCMAudio
 from discord import TextChannel
 from youtube_dl import YoutubeDL
-from .until import audiomanager, models
+from .until import audiomanager, models, commands as audio_commands
 from core import botbase
 from core.audio import audiocontroller
 
@@ -34,9 +34,16 @@ class YoutubeCog(commands.Cog):
     @commands.command(name="play", description="plays music/sound from a given link or name")
     async def play(self, ctx, *, url: str):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        await audio_commands.play_command(audio_controller, url)
+        # audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        #
+        # audio_controller.queue(track=models.Track(url=url))
+        # await audio_controller.play_wrapper()
 
-        audio_controller.queue(track=models.Track(url=url))
-        await audio_controller.play_wrapper()
+    @commands.command(name="queue", description="plays music/sound from a given link or name")
+    async def queue(self, ctx, *, url: str):
+        audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        await audio_commands.queue_command(audio_controller, url)
 
     @commands.command(name="playlist", description="shows the playlist")
     async def playlist(self, ctx):
@@ -48,33 +55,22 @@ class YoutubeCog(commands.Cog):
     @commands.command(name="skip", description="skips current track")
     async def skip(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
-        audio_controller.guild.voice_client.stop()
-
-        audio_controller.on_next()
+        await audio_commands.skip_command(audio_controller)
 
     @commands.command(name="prev", description="plays the previous song")
     async def prev(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
-        audio_controller.guild.voice_client.stop()
-
-        audio_controller.playlist.prev()
-        await audio_controller.play_wrapper()
+        await audio_commands.prev_command(audio_controller)
 
     @commands.command(name='pause', help='This command pauses the song')
     async def pause(self, ctx):
-        voice_client = ctx.message.guild.voice_client
-        if voice_client.is_playing():
-            await voice_client.pause()
-        else:
-            await ctx.send("The bot is not playing anything at the moment.")
+        audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        await audio_commands.pause_command(audio_controller)
 
     @commands.command(name='resume', help='Resumes the song')
     async def resume(self, ctx):
-        voice_client = ctx.message.guild.voice_client
-        if voice_client.is_paused():
-            await voice_client.resume()
-        else:
-            await ctx.send("The bot was not playing anything before this. Use play_song command")
+        audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        await audio_commands.resume_command(audio_controller)
 
 
 async def setup(bot):
