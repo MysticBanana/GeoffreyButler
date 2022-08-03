@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Tuple, Callable, Optional
 from collections import deque, defaultdict
 import discord
+import time
 
 
 class Track:
@@ -16,6 +17,9 @@ class Track:
     def load(self):
         """loads additional information for track"""
         pass
+
+    def convert_time(self, seconds):
+        return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
     async def send_interface(self, bot, channel: discord.TextChannel):
         """sends a message in a channel to interact with (track play interface)

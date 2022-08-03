@@ -6,6 +6,8 @@ from core.audio import models
 from . import util
 import discord
 import youtube_dl
+from core.messages import embeds
+
 
 youtube_dl_format_options = {
     'format': 'bestaudio/best',
@@ -98,7 +100,29 @@ class Track(models.Track):
         Important:
             - Use the bot MessageController to send messages"""
 
-        await bot.responses.send(channel=channel, make_embed=False, content=f"Playing song: {self.info.title}")
+        duration = {
+            "name": "Duration:",
+            "value": f"{self.convert_time(self.info.duration)}",
+            "inline": True
+        }
+
+        author = {
+            "name": "Uploader:",
+            "value": f"{self.info.uploader}",
+            "inline": True
+        }
+
+        webpage = {
+            "name": "Webpage:",
+            "value": f"{self.info.webpage_url}",
+            "inline": False
+        }
+
+        fields = [duration, author]
+
+        embed = embeds.build_embed(title=f"Playing: {self.info.title}", thumbnail=self.info.thumbnail, fields=fields)
+
+        await bot.responses.send(channel=channel, embed=embed)
 
 
 class Playlist:

@@ -16,7 +16,7 @@ class YoutubeCog(commands.Cog):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
 
-    @commands.command(name="join", description="joins your channel")
+    @commands.command(name="join", help="joins your channel")
     async def join(self, ctx):
         if not ctx.message.author.voice:
             await ctx.send("{} is not connected to a voice channel".format(ctx.message.author.name))
@@ -25,13 +25,13 @@ class YoutubeCog(commands.Cog):
             channel = ctx.message.author.voice.channel
         await channel.connect()
 
-    @commands.command(name="leave", description="leaves the channel again")
+    @commands.command(name="leave", help="leaves the channel again")
     async def leave(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
 
         await audio_controller.disconnect()
 
-    @commands.command(name="play", description="plays music/sound from a given link or name")
+    @commands.command(name="play", help="plays music/sound from a given link or name")
     async def play(self, ctx, *, url: str):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
         await audio_commands.play_command(audio_controller, url)
@@ -40,24 +40,24 @@ class YoutubeCog(commands.Cog):
         # audio_controller.queue(track=models.Track(url=url))
         # await audio_controller.play_wrapper()
 
-    @commands.command(name="queue", description="plays music/sound from a given link or name")
+    @commands.command(name="queue", help="plays music/sound from a given link or name")
     async def queue(self, ctx, *, url: str):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
         await audio_commands.queue_command(audio_controller, url)
 
-    @commands.command(name="playlist", description="shows the playlist")
+    @commands.command(name="playlist", help="shows the playlist")
     async def playlist(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
 
         # todo temp
         await self.bot.responses.send(channel=ctx.channel, content="\n".join([i.url for i in audio_controller.playlist.track_list]))
 
-    @commands.command(name="skip", description="skips current track")
+    @commands.command(name="skip", help="skips current track")
     async def skip(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
         await audio_commands.skip_command(audio_controller)
 
-    @commands.command(name="prev", description="plays the previous song")
+    @commands.command(name="prev", help="plays the previous song")
     async def prev(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
         await audio_commands.prev_command(audio_controller)

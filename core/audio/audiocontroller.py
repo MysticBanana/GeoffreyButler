@@ -127,6 +127,9 @@ class Controller:
     def on_next(self, event=None):
         """Gets called when a track ended"""
 
+        if len(self.playlist.track_list) == 0:
+            return
+
         coro = self.play_wrapper(self.playlist.next())
         self.bot.loop.create_task(coro)
 
