@@ -92,6 +92,10 @@ class Playlist:
         self.track_list.clear()
         self.track_history.clear()
 
+    def save(self):
+        """returns json object with tracks to save as playlist in config"""
+        # todo
+        pass
 
 
 

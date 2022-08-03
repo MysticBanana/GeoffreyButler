@@ -1,1 +1,1 @@
-from .ConfigLoader import ConfigHandler
+from .ConfigLoader import ConfigHandler, ExtensionConfigHandler

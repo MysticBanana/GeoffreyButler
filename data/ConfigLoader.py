@@ -2,15 +2,19 @@ import os
 from . import FileHandler
 from pathlib import Path
 import helper
+from typing import Dict
 
 
 class ConfigHandler:
     server_config_name = "server.json"
     _exists = False
 
+    extension_handler: Dict[str, "ExtensionConfigHandler"] = {}
+
     def __init__(self, bot, guild):
         self.bot = bot
         self.guild = guild
+        self.extension_handler = {}
 
         self.path: Path = bot.project_root / "json" / str(guild.guild_id)
         self.path.mkdir(parents=True, exist_ok=True)
@@ -48,4 +52,20 @@ class ConfigHandler:
             Path.joinpath(path, ConfigHandler.server_config_name))
 
         return config.content
+
+
+class ExtensionConfigHandler:
+
+    config_handler: ConfigHandler
+    extension_name: str
+    data: dict
+
+    def __init__(self, config_handler: ConfigHandler, extension_name):
+        self.config_handler = config_handler
+        self.extension_name = extension_name
+        self.data = config_handler.guild.get(self.extension_name, {})
+
+    def flush(self):
+        self.config_handler.guild.set_extension_data(self.extension_name, self.data)
+
 

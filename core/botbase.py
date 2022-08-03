@@ -89,6 +89,9 @@ class BotBase(commands.Bot):
 
         return controller
 
+    def get_extension_config_handler(self, guild: discord.Guild, extension_name: str):
+        return self.guilds.get(guild.id).register_extension_config_handler(extension_name)
+
     async def load_plugins(self):
         self.logger.info("Loading Plugins")
 

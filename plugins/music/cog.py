@@ -2,17 +2,12 @@ import asyncio
 
 import discord
 from discord.ext import commands
-import youtube_dl
-from discord.utils import get
-from discord import FFmpegPCMAudio
-from discord import TextChannel
-from youtube_dl import YoutubeDL
-from .until import audiomanager, models, commands as audio_commands
+from .until import commands as audio_commands
 from core import botbase
 from core.audio import audiocontroller
 
 
-class YoutubeCog(commands.Cog):
+class MusicCog(commands.Cog):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
 
@@ -35,10 +30,6 @@ class YoutubeCog(commands.Cog):
     async def play(self, ctx, *, url: str):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
         await audio_commands.play_command(audio_controller, url)
-        # audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
-        #
-        # audio_controller.queue(track=models.Track(url=url))
-        # await audio_controller.play_wrapper()
 
     @commands.command(name="queue", help="plays music/sound from a given link or name")
     async def queue(self, ctx, *, url: str):
@@ -74,4 +65,4 @@ class YoutubeCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(YoutubeCog(bot))
+    await bot.add_cog(MusicCog(bot))

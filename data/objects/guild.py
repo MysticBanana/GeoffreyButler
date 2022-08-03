@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 import discord.guild
-from typing import Dict, Any
-from data import ConfigHandler
+from typing import Dict, Any, Optional
+from data import ConfigHandler, ExtensionConfigHandler
 
 from collections import defaultdict
 
@@ -25,6 +25,12 @@ class GuildData:
 
         self.users = kwargs.get("users", {})
         self.extension = kwargs.get("extension", {})
+
+    def get_extension_data(self, extension_name: str) -> Optional[dict]:
+        return self.extension.get(extension_name)
+
+    def set_extension_data(self, extension_name: str, data: dict):
+        self.extension[extension_name] = data
 
     def jsonify(self) -> Dict:
         # todo might need a rework this is inefficient
@@ -59,6 +65,12 @@ class Guild:
                 return getattr(self.guild_data, item)
 
         raise AttributeError
+
+    def register_extension_config_handler(self, extension_name) -> ExtensionConfigHandler:
+        if extension_name not in self.config_handler.extension_handler:
+            self.config_handler.extension_handler[extension_name] = ExtensionConfigHandler(self.config_handler, )
+
+        return self.config_handler.extension_handler.get(extension_name)
 
     def jsonify(self) -> Dict:
         if self.guild_data is not None:
