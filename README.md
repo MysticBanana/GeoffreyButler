@@ -1,14 +1,17 @@
 # GeoffreyButler
-Simple framework build on top of the Discord.py library.
+Simple extendable Discord bot using the Discord.py (v2.0) library.
 
- * automatically loads extensions/plugins from defined folder
+# Features
+ * dynamic loading of  extensions/plugins from defined folder
  * config manager to access and store structured server specific data
+ * dynamic config management for each extension/plugin
+ * global audio controller to access from multiple plugins at the same time
 
 # How to use
+All configs are made in the `conf.ini`. To customize them create a `conf.ini.local` and specify all
+variables you want to overwrite (e.g. your token).
 
-All configurations are stored in the `conf.ini`. To use them you have to create a `conf.ini.local` and specify all
-variables you want to overwrite for example your token.
-
-A configuration file for every server gets created automatically after the bot receives a message. Every Discord-Server
-uses an own `ConfigLoader` that is stored in a dictionary `SERVERS` (access with server-id). To access the saved data 
-you can treat the `ConfigLoader` as a dictionary and might call `flush` at the end to write the data in the file.
+The config file for each server gets created dynamically. Ever server gets it own `ConfigHandler` (access by server-id).
+To work with the data you can treat the `ConfigLoader` as a `dictionary`. If automatic saving is disabled you should
+ call `flush` after modifying.
+ 
