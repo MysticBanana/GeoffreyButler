@@ -2,7 +2,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
-from .until import commands as audio_commands
+from .util import commands as audio_commands
 from core import botbase
 from core.audio import audiocontroller
 
@@ -62,6 +62,12 @@ class MusicCog(commands.Cog):
     async def resume(self, ctx):
         audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
         await audio_commands.resume_command(audio_controller)
+
+    @commands.command(name='save_playlist', help='saves a list of links as playlist')
+    async def save_playlist(self, ctx):
+        audio_controller = await audiocontroller.Controller.controller_from_ctx(self.bot, ctx)
+        # todo
+        pass
 
 
 async def setup(bot):

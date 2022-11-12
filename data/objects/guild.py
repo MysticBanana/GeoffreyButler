@@ -3,41 +3,41 @@ from dataclasses import dataclass
 import discord.guild
 from typing import Dict, Any, Optional
 from data import ConfigHandler, ExtensionConfigHandler
+from . import base
+from . import user
+from . import role
 
 from collections import defaultdict
 
 
-
-class GuildData:
+class GuildData(base.BaseObject):
     guild_id: int
     name: str
 
     users: Dict[int, Any]
+    roles: role.Roles
 
     # used to store extension specific data
     extension: Dict[str, Any]
 
-    __slots__ = ("guild_id", "name", "users", "extension")
+    __slots__ = ("guild_id", "name", "users", "extension", "roles")
 
-    def __init__(self, guild_id, name, **kwargs):
+    def __init__(self, guild_id, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.guild_id = guild_id
         self.name = name
 
         self.users = kwargs.get("users", {})
         self.extension = kwargs.get("extension", {})
+        self.roles = kwargs.get("roles")
+        self.roles = role.Roles.from_dict(self.roles) if self.roles is not None else role.Roles()
 
     def get_extension_data(self, extension_name: str) -> Optional[dict]:
         return self.extension.get(extension_name)
 
     def set_extension_data(self, extension_name: str, data: dict):
         self.extension[extension_name] = data
-
-    def jsonify(self) -> Dict:
-        # todo might need a rework this is inefficient
-        data = {}
-        for i in list(map(lambda x: {x: getattr(self, x)}, self.__slots__)):
-            data.update(i)
-        return data
 
     @staticmethod
     def from_dict(data: dict) -> "GuildData":
@@ -65,6 +65,12 @@ class Guild:
                 return getattr(self.guild_data, item)
 
         raise AttributeError
+
+    def get_role(self, *, id: int) -> role.Role:
+        return self.guild_data.roles.get_role(id=id)
+
+    def add_role(self, *, role: discord.Role):
+        self.guild_data.roles.add_role(role=role)
 
     def register_extension_config_handler(self, extension_name) -> ExtensionConfigHandler:
         if extension_name not in self.config_handler.extension_handler:
@@ -100,3 +106,5 @@ class Guild:
             return Guild(bot, guild_data=GuildData(**data))
         except Exception as e:
             raise e
+
+

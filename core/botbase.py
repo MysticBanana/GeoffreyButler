@@ -8,7 +8,7 @@ from collections import defaultdict
 import helper
 import importlib.util
 import importlib.machinery
-from . import messages, audio
+from . import messages, audio, roles
 
 
 class BotBase(commands.Bot):
@@ -78,16 +78,27 @@ class BotBase(commands.Bot):
 
             self.load_guild(Guild.from_guild_id(self, guild_id))
 
+    def flush(self):
+        for guild_data in self.GUILDS.values():
+            guild_data.flush()
+
     def get_audio_controller(self, guild: discord.Guild) -> audio.Controller:
         """Returns an audio controller object for a guild"""
 
         if guild in self.audio_controller:
             return self.audio_controller.get(guild)
 
+        self.logger.info("loading audio controller")
         controller = audio.Controller(self, guild)
         self.audio_controller[guild] = controller
 
         return controller
+
+    def get_role_controller(self, guild: discord.Guild) -> roles.RoleController:
+        self.logger.info("loading role controller")
+        role_controller = roles.RoleController(self, guild)
+
+        return role_controller
 
     def get_extension_config_handler(self, guild: discord.Guild, extension_name: str):
         return self.guilds.get(guild.id).register_extension_config_handler(extension_name)

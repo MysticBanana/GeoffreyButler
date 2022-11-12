@@ -19,7 +19,10 @@ async def skip_command(controller: audiocontroller.Controller):
     audio_controller = controller
     audio_controller.guild.voice_client.stop()
 
-    audio_controller.on_next()
+    # todo on next is automatically called when a track gets stopped so might call twice
+    # audio_controller.on_next()
+    # todo test if works correct now
+    await audio_controller.play_wrapper()
 
 
 async def prev_command(controller: audiocontroller.Controller):
