@@ -30,6 +30,12 @@ class Role(base.BaseObject):
     def __hash__(self):
         return self.id
 
+    def __eq__(self, other):
+        try:
+            return self.__hash__() == other.__hash__()
+        except:
+            return NotImplemented
+
 
 class Roles(base.BaseObject):
 
@@ -47,6 +53,14 @@ class Roles(base.BaseObject):
 
     def add_role(self, *, role: discord.Role):
         self.roles.add(Role.from_discord(role))
+
+    def remove_role(self, *, role: discord.Role = None, id: int = None):
+        _id = id if id is not None else role.id
+
+        for i in self.roles:
+            if i.id == _id:
+                self.roles.remove(i)
+                return
 
     def get_role(self, *, id: int):
         for role in self.roles:

@@ -61,7 +61,7 @@ class Guild:
 
     def __getattr__(self, item):
         if self.guild_data is not None:
-            if item in self.guild_data.__slots__:
+            if hasattr(self.guild_data, item):
                 return getattr(self.guild_data, item)
 
         raise AttributeError
@@ -72,9 +72,12 @@ class Guild:
     def add_role(self, *, role: discord.Role):
         self.guild_data.roles.add_role(role=role)
 
+    def remove_role(self, *, role: discord.Role = None, id: int = None):
+        self.guild_data.roles.remove_role(role=role, id=id)
+
     def register_extension_config_handler(self, extension_name) -> ExtensionConfigHandler:
         if extension_name not in self.config_handler.extension_handler:
-            self.config_handler.extension_handler[extension_name] = ExtensionConfigHandler(self.config_handler, )
+            self.config_handler.extension_handler[extension_name] = ExtensionConfigHandler(self.config_handler, extension_name)
 
         return self.config_handler.extension_handler.get(extension_name)
 

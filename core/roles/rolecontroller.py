@@ -19,9 +19,18 @@ class RoleController:
 
         return super(RoleController, cls).__new__(cls)
 
-    def load_roles(self):
-        pass
-
     def add_role(self, *, role: discord.Role):
         self.bot.GUILDS[self.guild.id].add_role(role=role)
+
+    def remove_role(self, *, role: discord.Role = None, id: int = None):
+        self.bot.GUILDS[self.guild.id].remove_role(role=role, id=id)
+
+    def get_data(self, *, role: discord.Role = None, id: int = None):
+        pass
+
+    def set_data(self, *, role: discord.Role = None, id: int = None):
+        pass
+
+    def add_data(self, *, role: discord.Role = None, id: int = None):
+        pass
 
