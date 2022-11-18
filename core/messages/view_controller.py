@@ -5,6 +5,7 @@ import discord
 import discord.ui
 
 
+
 class ViewController:
     config: message_config.ViewConfig
 
@@ -17,192 +18,14 @@ class ViewController:
         """
         Returns a view to put into .send(view=...)
         """
+        return discord.ui.View()
+
+    def get_select_view(self, callback: Callable):
         pass
 
     @property
     def view(self):
         return self.get_view()
-
-
-class SelectView(discord.ui.Select):
-
-    custom_callback: Callable = None
-
-    def __init__(self, custom_id: str = None, placeholder: str = "", min_value: int = 1, max_values: int = 25,
-                 disabled: bool = False, options: List[discord.SelectOption] = None, callback: Callable = None):
-        super().__init__(custom_id=custom_id, placeholder=placeholder, min_values=min_value, max_values=max_values,
-                         disabled=disabled, options=options)
-
-        self.custom_callback = callback
-
-    async def callback(self, interaction: discord.Interaction) -> Any:
-        # execute the given callback before the default one
-        if self.custom_callback is not None:
-            self.custom_callback(interaction)
-
-        # default callpack
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
