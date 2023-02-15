@@ -123,5 +123,3 @@ class FileHandler:
     def __str__(self):
         return self._path
 
-    def __del__(self):
-        self.flush()

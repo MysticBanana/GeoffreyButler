@@ -22,11 +22,11 @@ class GuildData(base.BaseObject):
 
     __slots__ = ("guild_id", "name", "users", "extension", "roles")
 
-    def __init__(self, guild_id, name, *args, **kwargs):
+    def __init__(self, guild_id: int = None, name: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.guild_id = guild_id
-        self.name = name
+        self.guild_id = guild_id or kwargs.get("id")
+        self.name = name or kwargs.get("name")
 
         self.users = kwargs.get("users", {})
         self.extension = kwargs.get("extension", {})

@@ -31,6 +31,7 @@ async def prev_command(controller: audiocontroller.Controller):
 
     # need to call prev twice because on_next gets called after playing something
     audio_controller.playlist.prev()
+    # todo might need to stop the coro to avoid doing some funny stuff after finishing and skipping random
     await audio_controller.play_wrapper(audio_controller.playlist.prev())
 
 
