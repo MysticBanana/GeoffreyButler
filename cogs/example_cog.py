@@ -29,15 +29,11 @@ class GeoffreyCommands(commands.Cog):
 
     @commands.command(name="test1", description="test")
     async def test1(self, ctx):
-
-        options = [discord.SelectOption(label="1", value="123"),
-                   discord.SelectOption(label="2", value="1234")]
-
-        view = view_controller.ViewController(self.bot, ctx.guild).get_view()
-        menu = models.RoleSelect(min_values=1, max_values=25, placeholder="placeholder", options=options)
-        view.add_item(menu)
-
-        await self.bot.responses.send(view=view, channel=ctx.channel, make_embed=False, content="description")
+        pass
+        # view = DropdownView()
+        # await ctx.send("pick what ever", view=view)
+        #
+        # await self.bot.responses.send(view=view, channel=ctx.channel, make_embed=False, content="description")
 
     @commands.command(name="imenu", description="testing interactive menu")
     async def imenu(self, ctx):

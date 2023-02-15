@@ -7,7 +7,8 @@ from core import messages
 from core.messages import view_controller
 from core import helper
 from typing import Optional, Tuple, Union, Dict, List
-from . import models
+import discord
+
 
 class RolePollCog(commands.Cog):
     def __init__(self, bot: botbase.BotBase):
@@ -56,19 +57,23 @@ class RolePollCog(commands.Cog):
         req = "Type in the text displayed on the selection menu"
         placeholder = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
+        user = ctx.author
+
         options: List[discord.SelectOption] = []
         for role in roles:
             req = f"Type in the displayed text for role '{role.name}'"
             r = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
             if len(r) > 100:
                 return
-            options.append(discord.SelectOption(value=str(role.id), label=r))
+
+            d = True if role in user.roles else False
+            options.append(discord.SelectOption(value=str(role.id), label=r, default=d))
 
 
         # todo reqest for placeholder
 
         view = view_controller.ViewController(self.bot, ctx.guild).get_view()
-        menu = models.RoleSelect(min_values=1, max_values=25, placeholder=placeholder, options=options)
+        menu = models.RoleSelect(custom_id="45678", min_values=1, max_values=len(options), placeholder=placeholder, options=options)
         view.add_item(menu)
 
         await self.bot.responses.send(view=view, channel=ctx.channel, make_embed=False, content=description)
@@ -77,9 +82,9 @@ class RolePollCog(commands.Cog):
         # send role stuff here
         # todo not hardcoded
         options = [discord.SelectOption(label=roles[role_id], value=role_id, default=False) for role_id in roles]
-        sel_view = discord.ui.Select(custom_id="rolepoll", placeholder="Select your roles", options=options)
+        sel_view = discord.ui.Select(custom_id="rolepoll1", placeholder="Select your roles", options=options)
 
-        vc = view_controller.ViewController(self.bot, ctx.guild)
+        vc = view_controller.ViewController(self.bot, ctx.guild).get_persistent_view()
         view = vc.get_view()
         view.add_item(sel_view)
 

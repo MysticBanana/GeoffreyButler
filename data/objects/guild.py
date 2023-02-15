@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 import discord.guild
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from data import ConfigHandler, ExtensionConfigHandler
 from . import base
 from . import user

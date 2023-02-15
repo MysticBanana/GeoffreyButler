@@ -9,6 +9,7 @@ import helper
 import importlib.util
 import importlib.machinery
 from . import messages, audio, roles
+import inspect
 
 
 class BotBase(commands.Bot):
@@ -169,6 +170,13 @@ class BotBase(commands.Bot):
 
         if type(exception) == commands.CommandInvokeError:
             print("i messed up sorry")
+
+    async def setup_hook(self) -> None:
+        for name, view in inspect.getmembers(messages.views):
+            try:
+                self.add_view(view)
+            except TypeError:
+                pass
 
     def run(self, **kwargs):
         super().run(self.token, **kwargs)

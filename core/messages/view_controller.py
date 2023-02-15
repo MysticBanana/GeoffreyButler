@@ -5,7 +5,6 @@ import discord
 import discord.ui
 
 
-
 class ViewController:
     config: message_config.ViewConfig
 
@@ -22,6 +21,9 @@ class ViewController:
 
     def get_select_view(self, callback: Callable):
         pass
+
+    def get_persistent_view(self, ):
+        return discord.ui.View(timeout=None)
 
     @property
     def view(self):

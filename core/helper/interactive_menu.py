@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, Union, Dict, List, Any
 import discord
-
+from discord import ui
 
 class Menu:
 
@@ -44,6 +44,26 @@ class Menu:
             responses.append(msg.content)
 
         return responses
+
+
+class UiMenu(ui.Modal):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # todo test
+
+        options: Tuple[Union[Dict, discord.ui.TextInput]] = kwargs.get("options", tuple())
+
+        for option in options:
+            if isinstance(options, discord.ui.TextInput):
+                self.add_item(option)
+                continue
+
+            self.add_item(discord.ui.TextInput(**option))
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        pass  # await interaction.response.send_message("submited", ephemeral=True)
 
 
 async def request_string(bot, channel, user: discord.Member, content):

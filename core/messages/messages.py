@@ -57,7 +57,7 @@ class MessageController:
         if embed is not None:
             message = await channel.send(embed=embed, view=view)
         else:
-            message = await channel.send(content=content)
+            message = await channel.send(content=content, view=view)
 
         await self.add_reaction(message, reactions)
 
