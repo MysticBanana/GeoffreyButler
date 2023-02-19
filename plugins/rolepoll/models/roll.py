@@ -3,8 +3,12 @@ from discord import Role as _Role
 
 
 class Role:
-    pass
+    _id: int
+    _name: str
 
+    @staticmethod
     def from_role(role: _Role) -> "Role":
         pass
 
+    def dump(self):
+        pass

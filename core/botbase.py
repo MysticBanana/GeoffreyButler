@@ -1,7 +1,7 @@
 import discord
 from discord.ext import tasks, commands
 from pathlib import Path
-from data.objects import Guild
+from data.models import Guild
 from typing import Tuple, List, Dict, Union, Callable, Any
 from configparser import ConfigParser
 from collections import defaultdict

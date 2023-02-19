@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from core import botbase
-from data import objects
+from data import models
 import data
 
 

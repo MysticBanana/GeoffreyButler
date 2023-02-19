@@ -7,17 +7,14 @@ class Role(base.BaseObject):
 
     id: int
     name: str
-    data: List
 
-    __slots__ = ("id", "name", "data")
+    __slots__ = ("id", "name",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.id = kwargs.get("id")
         self.name = kwargs.get("name")
-
-        self.data = kwargs.get("data", [])
 
     @staticmethod
     def from_dict(data: Dict) -> "Role":
