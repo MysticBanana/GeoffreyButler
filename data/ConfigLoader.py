@@ -2,7 +2,7 @@ import os
 from . import FileHandler
 from pathlib import Path
 import helper
-from typing import Dict
+from typing import Dict, Any
 
 
 class ConfigHandler:
@@ -63,13 +63,16 @@ class ExtensionConfigHandler:
     def __init__(self, config_handler: ConfigHandler, extension_name):
         self.config_handler = config_handler
         self.extension_name = extension_name
-        self.data = config_handler.guild.get(self.extension_name) or {}
+        self.data = self.config_handler.config.content.get("extension", {}).get(self.extension_name) or {}
 
     def update(self, data: Dict):
         self.data.update(data)
 
     def get(self, name: str) -> dict:
         return self.data.get(name, {})
+
+    def remove(self, key: Any) -> None:
+        self.data.pop(key)
 
     def flush(self):
         self.config_handler.guild.set_extension_data(self.extension_name, self.data)
