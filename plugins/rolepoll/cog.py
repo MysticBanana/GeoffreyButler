@@ -2,17 +2,22 @@ import discord
 from discord.ext import commands
 from core import botbase
 from core.audio import audiocontroller
-from . import config, util
+from . import config
 from core import messages
 from core.messages import view_controller
 from core import helper
+import helper as _helper
 from typing import Optional, Tuple, Union, Dict, List
 import discord
+from . import pollcontroller
+from .models import poll
 
 
 class RolePollCog(commands.Cog):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
+        self.logger = _helper.Logger().get_logger(self.__class__.__name__)
+
 
     """
     {
@@ -21,75 +26,62 @@ class RolePollCog(commands.Cog):
     """
 
     @commands.command(name="rp_create", description="creates a category with roles")
-    async def create_category(self, ctx, category: str, *args):
+    async def create_poll(self, ctx):
         role_controller = self.bot.get_role_controller(ctx.guild)
-        roles = ctx.message.role_mentions
-
-        if len(roles) > 25:
-            return
-        # todo error message
-
-        for role in roles:
-            role_controller.add_role(role=role)
-        self.bot.flush()
-
-        category = util.Category(category, dict.fromkeys([role.id for role in roles]))
-
-        extension_controller = self.bot.get_extension_config_handler(ctx.guild, config.EXTENSION_NAME)
-        extension_controller.update(category.jsonify())
-        extension_controller.flush()
-
-    @commands.command(name="rp_poll", description="creates a selection menu")
-    async def rp_poll(self, ctx):
-        # role_controller = self.bot.get_role_controller(ctx.guild)
-
         extension_controller = self.bot.get_extension_config_handler(ctx.guild, config.EXTENSION_NAME)
 
-        def callback(interaction: discord.Interaction):
-            print()
+        _poll: List[List[int, str, str]] = []
 
-        req = "To create a role poll selection menu type in all possible roles:"
+        req = "Insert the title of your poll"
+        title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+        req = "Insert all available roles"
         roles = await helper.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Type in the message displayed above the menu:"
-        description = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
-
-        req = "Type in the text displayed on the selection menu"
-        placeholder = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
-
-        user = ctx.author
-
-        options: List[discord.SelectOption] = []
         for role in roles:
-            req = f"Type in the displayed text for role '{role.name}'"
-            r = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
-            if len(r) > 100:
-                return
+            req = f"Insert the displayed name '{role.name}' (insert '#' for none)"
+            displayed = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
-            d = True if role in user.roles else False
-            options.append(discord.SelectOption(value=str(role.id), label=r, default=d))
+            req = emoji = f"Insert the displayed emoji '{role.name}'"
+            emoji = await helper.interactive_menu.request_emoji(self.bot, ctx.channel, ctx.author, req)
 
+            _poll.append([role.id, displayed, emoji])
 
-        # todo reqest for placeholder
+        p = poll.Poll(message_id=0, channel_id=ctx.channel.id, title=title, poll=_poll)
 
-        view = view_controller.ViewController(self.bot, ctx.guild).get_view()
-        menu = models.RoleSelect(custom_id="45678", min_values=1, max_values=len(options), placeholder=placeholder, options=options)
-        view.add_item(menu)
+        await pollcontroller.create_poll(self.bot, ctx.guild, ctx.channel, p)
 
-        await self.bot.responses.send(view=view, channel=ctx.channel, make_embed=False, content=description)
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        emoji = str(payload.emoji)
+        message_id = payload.message_id
+        channel_id = payload.channel_id
+        member = payload.member
+        guild_id = payload.guild_id
 
-        return
-        # send role stuff here
-        # todo not hardcoded
-        options = [discord.SelectOption(label=roles[role_id], value=role_id, default=False) for role_id in roles]
-        sel_view = discord.ui.Select(custom_id="rolepoll1", placeholder="Select your roles", options=options)
+        channel = await self.bot.fetch_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        guild = await self.bot.fetch_guild(guild_id)
 
-        vc = view_controller.ViewController(self.bot, ctx.guild).get_persistent_view()
-        view = vc.get_view()
-        view.add_item(sel_view)
+        if message.content.startswith(pollcontroller.RP_PREFIX):
+            self.logger.info(f"adding role to user {member.name} - user_id:{member.id}")
+            await pollcontroller.add_reaction(self.bot, guild, channel, message_id, member, emoji)
 
-        await self.bot.responses.send(view=view, channel=ctx.channel, make_embed=False, content="")
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        emoji = str(payload.emoji)
+        message_id = payload.message_id
+        channel_id = payload.channel_id
+        guild_id = payload.guild_id
 
+        channel = await self.bot.fetch_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        guild = await self.bot.fetch_guild(guild_id)
+        member: discord.Member = await guild.fetch_member(payload.user_id)
+
+        if message.content.startswith(pollcontroller.RP_PREFIX):
+            self.logger.info(f"removing role from user {member.name} - user_id:{member.id}")
+            await pollcontroller.remove_reaction(self.bot, guild, channel, message_id, member, emoji)
 
 
 async def setup(bot):

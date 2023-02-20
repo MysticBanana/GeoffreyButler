@@ -25,6 +25,12 @@ class RoleController:
     def remove_role(self, *, role: discord.Role = None, id: int = None):
         self.bot.GUILDS[self.guild.id].remove_role(role=role, id=id)
 
+    def get_role_by_id(self, id: int):
+        return self.guild_data.get_role(id=id)
+
+    def get_role_by_role(self, role: discord.Role):
+        return self.guild_data.get_role(id=role.id)
+
     def get_data(self, *, role: discord.Role = None, id: int = None):
         pass
 
@@ -33,4 +39,8 @@ class RoleController:
 
     def add_data(self, *, role: discord.Role = None, id: int = None):
         pass
+
+    @property
+    def guild_data(self):
+        return self.bot.GUILDS[self.guild.id]
 

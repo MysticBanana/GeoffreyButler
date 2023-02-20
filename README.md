@@ -11,6 +11,7 @@ Simple extendable Discord bot using the Discord.py (v2.0) library.
  
 # Plugins
  * Musicbot (works but some features are missing)
+ * basic role poll (editing and other features coming soon)
 
 # How to use
 All configs are made in the `conf.ini`. To customize them create a `conf.ini.local` and specify all

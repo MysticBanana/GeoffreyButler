@@ -20,10 +20,6 @@ class Geoffrey(botbase.BotBase):
     def __init__(self, command_prefix="?", **kwargs):
         super().__init__(command_prefix, **kwargs)
 
-
-
-
-
     async def on_ready(self):
         await self.change_presence(activity=discord.Game(name=f'{self.command_prefix}help || Version: {self.VERSION}'))
         if not hasattr(self, 'uptime'):
