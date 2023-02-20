@@ -1,6 +1,9 @@
+import random
 from typing import Optional, Tuple, Union, Dict, List, Any
 import discord
 from discord import ui
+import emoji
+
 
 class Menu:
 
@@ -75,10 +78,34 @@ async def request_string(bot, channel, user: discord.Member, content):
     return msg.content
 
 
-async def request_roles(bot, channel, user: discord.Member, content) -> List[discord.Role]:
+async def request_emoji(bot, channel, user: discord.Member, content, counter: int = 0):
+    if counter > 3:
+        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing a random emoji")
+        return str(random.choice(bot.emojis))
+
     await bot.responses.send(channel=channel, make_embed=False, content=content)
+
+    msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
+                                  timeout=40.0)
+
+    if emoji.is_emoji(msg.content) or msg.content.strip() in msg.content in [str(i) for i in bot.emojis]:
+        return msg.content
+    else:
+        return await request_emoji(bot, channel, user, content, counter + 1)
+
+
+async def request_roles(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.Role]:
+    await bot.responses.send(channel=channel, make_embed=False, content=content)
+
+    if counter > 3:
+        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries")
+        return []
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                              timeout=40.0)
+
+    if len(msg.role_mentions) == 0:
+        # retry
+        return await request_roles(bot, channel, user, content, counter + 1)
 
     return msg.role_mentions
