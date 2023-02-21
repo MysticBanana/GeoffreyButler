@@ -78,6 +78,23 @@ async def request_string(bot, channel, user: discord.Member, content):
     return msg.content
 
 
+async def request_int(bot, channel, user: discord.Member, content, counter: int = 0):
+    if counter > 3:
+        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 0")
+        return 0
+
+    await bot.responses.send(channel=channel, make_embed=False, content=content)
+
+    msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
+                                  timeout=40.0)
+
+    try:
+        return int(msg.content)
+
+    except ValueError:
+        return await request_emoji(bot, channel, user, content, counter + 1)
+
+
 async def request_emoji(bot, channel, user: discord.Member, content, counter: int = 0):
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing a random emoji")
