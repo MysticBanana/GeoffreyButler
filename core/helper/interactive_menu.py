@@ -78,7 +78,7 @@ async def request_string(bot, channel, user: discord.Member, content):
     return msg.content
 
 
-async def request_int(bot, channel, user: discord.Member, content, counter: int = 0):
+async def request_int(bot, channel, user: discord.Member, content, counter: int = 0) -> int:
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 0")
         return 0
@@ -107,6 +107,24 @@ async def request_emoji(bot, channel, user: discord.Member, content, counter: in
 
     if emoji.is_emoji(msg.content) or msg.content.strip() in msg.content in [str(i) for i in bot.emojis]:
         return msg.content
+    else:
+        return await request_emoji(bot, channel, user, content, counter + 1)
+
+
+async def request_bool(bot, channel, user: discord.Member, content, counter: int = 0) -> bool:
+    if counter > 3:
+        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 'No'")
+        return False
+
+    await bot.responses.send(channel=channel, make_embed=False, content=content)
+
+    msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
+                                  timeout=40.0)
+
+    if msg.content == "yes" or msg.content == "Yes" or msg.content == "y":
+        return True
+    elif msg.content == "no" or msg.content == "No" or msg.content == "n":
+        return False
     else:
         return await request_emoji(bot, channel, user, content, counter + 1)
 
