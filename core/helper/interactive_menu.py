@@ -92,10 +92,10 @@ async def request_int(bot, channel, user: discord.Member, content, counter: int 
         return int(msg.content)
 
     except ValueError:
-        return await request_emoji(bot, channel, user, content, counter + 1)
+        return await request_int(bot, channel, user, content, counter + 1)
 
 
-async def request_emoji(bot, channel, user: discord.Member, content, counter: int = 0):
+async def request_emoji(bot, channel, user: discord.Member, content, counter: int = 0) -> str:
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing a random emoji")
         return str(random.choice(bot.emojis))
@@ -126,7 +126,7 @@ async def request_bool(bot, channel, user: discord.Member, content, counter: int
     elif msg.content == "no" or msg.content == "No" or msg.content == "n":
         return False
     else:
-        return await request_emoji(bot, channel, user, content, counter + 1)
+        return await request_bool(bot, channel, user, content, counter + 1)
 
 
 async def request_roles(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.Role]:
@@ -144,3 +144,21 @@ async def request_roles(bot, channel, user: discord.Member, content, counter: in
         return await request_roles(bot, channel, user, content, counter + 1)
 
     return msg.role_mentions
+
+
+async def request_channel(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.TextChannel]:
+    if counter > 3:
+        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries")
+        return []
+
+    await bot.responses.send(channel=channel, make_embed=False, content=content)
+
+    msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
+                             timeout=40.0)
+
+
+    if len(msg.channel_mentions) == 0:
+        # retry
+        return await request_channel(bot, channel, user, content, counter + 1)
+
+    return msg.channel_mentions
