@@ -156,7 +156,6 @@ async def request_channel(bot, channel, user: discord.Member, content, counter: 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                              timeout=40.0)
 
-
     if len(msg.channel_mentions) == 0:
         # retry
         return await request_channel(bot, channel, user, content, counter + 1)
