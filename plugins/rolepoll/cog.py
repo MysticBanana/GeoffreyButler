@@ -18,13 +18,6 @@ class RolePollCog(commands.Cog):
         self.bot: botbase.BotBase = bot
         self.logger = _helper.Logger().get_logger(self.__class__.__name__)
 
-
-    """
-    {
-        category: "language": {"english": role_id, "german": role_id}
-    }
-    """
-
     @commands.command(name="rp_create", description="creates a category with roles")
     async def create_poll(self, ctx):
         role_controller = self.bot.get_role_controller(ctx.guild)
