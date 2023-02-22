@@ -68,8 +68,8 @@ class ExtensionConfigHandler:
     def update(self, data: Dict):
         self.data.update(data)
 
-    def get(self, name: str) -> dict:
-        return self.data.get(name, {})
+    def get(self, name: str, *args) -> dict:
+        return self.data.get(name, *args)
 
     def remove(self, key: Any) -> None:
         self.data.pop(key)
