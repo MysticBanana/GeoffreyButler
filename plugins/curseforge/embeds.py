@@ -2,7 +2,6 @@ from typing import Optional, Tuple, Union, Dict, List
 import discord
 from core import messages
 from cursepy.classes import base as cf_base
-from urllib import parse
 
 nl = "\n"
 

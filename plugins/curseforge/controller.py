@@ -16,8 +16,6 @@ async def _notify(bot, guild: discord.Guild, ext_handler, client: cursepy.CurseC
     extension_controller: ConfigLoader.ExtensionConfigHandler = ext_handler
 
 
-# ping ctx.send(content=f"{ctx.message.guild.default_role}", embed=embed)
-
 async def _update(bot, guild: discord.Guild, ext_handler, client: cursepy.CurseClient, game_id: int, addon_id: int):
     extension_controller: ConfigLoader.ExtensionConfigHandler = ext_handler
     _addon: models.Addon = models.Addon.from_dict(**extension_controller.get("game").get(game_id).get(addon_id))
@@ -26,7 +24,7 @@ async def _update(bot, guild: discord.Guild, ext_handler, client: cursepy.CurseC
     game = client.game(game_id)
     addon = client.addon(addon_id)
 
-    e = embeds.info(addon)
+    e = embeds.info_latest(addon)
     await guild.fetch_roles()
 
     if _addon.role_id is not None:
