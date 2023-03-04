@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple, Callable, Optional
+from typing import Any, Dict, Tuple, Callable, Optional, Deque
 from collections import deque, defaultdict
 from core.audio import models
 from . import util
@@ -136,8 +136,8 @@ class Playlist:
         save_history: bool = True
         loop: bool = False
 
-    track_playlist: deque[Track]
-    track_history: deque[Track]
+    track_playlist: Deque[Track]
+    track_history: Deque[Track]
 
     def __init__(self, settings: Settings = Settings()):
         self.track_playlist = deque()

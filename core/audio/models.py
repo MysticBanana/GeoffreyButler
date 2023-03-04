@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple, Callable, Optional
+from typing import Any, Dict, Tuple, Callable, Optional, Deque
 from collections import deque, defaultdict
 import discord
 import time
@@ -38,10 +38,10 @@ class Playlist:
         loop: bool = False
 
     # playlist what to play next
-    track_list: deque[Track]
+    track_list: Deque[Track]
 
     # list of all tracks played
-    track_history: deque[Track]
+    track_history: Deque[Track]
 
     # playlist settings
     settings: Settings
