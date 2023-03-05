@@ -4,7 +4,6 @@ from pathlib import Path
 from data.models import Guild
 from typing import Tuple, List, Dict, Union, Callable, Any
 from configparser import ConfigParser
-from collections import defaultdict
 import helper
 import importlib.util
 import importlib.machinery
@@ -17,6 +16,7 @@ class BotBase(commands.Bot):
     VERSION: str = "1.0"
 
     GUILDS: Dict[int, Guild] = {}
+    PLUGINS: List[str] = []
 
     conf = "conf.ini"
 
@@ -55,6 +55,8 @@ class BotBase(commands.Bot):
         self.token = self.config.get("DEFAULT", "token")
         self.command_prefix = self.config.get("DEFAULT", "prefix", fallback="?")
         self.dev_mode = self.config.getboolean("DEFAULT", "dev_mode", fallback=False)
+        self.VERSION = self.config.getfloat("DEFAULT", "version", fallback=self.VERSION)
+        self.plugin_path: Path = Path(self.project_root.joinpath(self.config.get("FILES", "plugins")))
 
         self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
         self.logger.info("Loaded basic setup")
@@ -68,6 +70,8 @@ class BotBase(commands.Bot):
         """
         Called on start to load all guilds from saved config files
         """
+
+        (self.project_root / "json").mkdir(parents=True, exist_ok=True)
 
         for file in (self.project_root / "json").iterdir():
             guild_id: int
@@ -107,14 +111,12 @@ class BotBase(commands.Bot):
     async def load_plugins(self):
         self.logger.info("Loading Plugins")
 
-        plugin_path = self.project_root.joinpath(self.config.get("FILES", "plugins"))
-
-        if not plugin_path.is_dir():
+        if not self.plugin_path.is_dir():
             return
 
         # iterate through all modules in the plugins folder
-        for module in plugin_path.iterdir():
-            await self.load_plugin(plugin_path, module.stem)
+        for module in self.plugin_path.iterdir():
+            await self.load_plugin(self.plugin_path, module.stem)
 
         self.logger.info("Successfully loaded all plugins")
 
@@ -130,7 +132,17 @@ class BotBase(commands.Bot):
         spec = plugin_finder.find_spec(name)
 
         await self._load_from_module_spec(spec, name)
+        self.PLUGINS.append(name)
+
         self.logger.info(f"Done")
+
+    async def unload_plugin(self, name: str):
+        await self.unload_extension(name)
+        self.PLUGINS.remove(name)
+
+    async def reload_plugin(self, name: str):
+        await self.unload_plugin(name)
+        await self.load_plugin(self.plugin_path, name)
 
     def register_guild(self, guild: discord.Guild):
         """
@@ -153,10 +165,6 @@ class BotBase(commands.Bot):
         if guild_id in list(self.guilds.keys()):
             return True
         return False
-
-    #  def add_cog(self, cog):
-    #     await super(BotBase, self).add_cog(cog)
-    #     self.logger.info(f"Cog {cog.qualified_name} loaded")
 
     async def on_command_error(self, context, exception):
         if context.message:
