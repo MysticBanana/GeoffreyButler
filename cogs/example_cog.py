@@ -8,7 +8,7 @@ class GeoffreyCommands(commands.Cog):
 
     @commands.command(name="test", description="example")
     async def test(self, ctx):
-        await self.bot.responses.send(ctx.channel, content="test", title="title6")
+        await self.bot.responses.send(ctx.channel, content="test", title="title7")
 
 
 async def setup(bot):
