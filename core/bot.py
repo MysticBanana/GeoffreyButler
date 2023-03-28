@@ -35,7 +35,13 @@ class Geoffrey(botbase.BotBase):
         # setup your commands
         await cogs.example_cog.setup(self)
         await cogs.events.setup(self)
+        await cogs.general.setup(self)
+
+        # test
+
 
         print("ready")
+
+
 
 

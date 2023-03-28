@@ -4,10 +4,11 @@ from . import message_config
 
 def build_embed(**kwargs) -> discord.Embed:
     config = kwargs.get("config", message_config.MessageConfig)
+    colour_theme = message_config.ThemeBlue
 
     title = kwargs.get("title", None)
     description = kwargs.get("description", None)
-    color = kwargs.get("color", message_config.get_color(config.DEFAULT_COLOR.value))
+    color = kwargs.get("color", message_config.get_color(colour_theme.PRIMARY.value))
     url = kwargs.get("url", None)
     author: discord.Member = kwargs.get("author", "")
     display_author_name = kwargs.get("author_name", "")  # replace the name of the other with a given custom name
