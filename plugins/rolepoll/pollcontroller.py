@@ -22,6 +22,17 @@ async def cleanup(bot, guild: discord.Guild):
             extension_controller.remove(id)
 
 
+async def simple_poll(bot, guild: discord.Guild, channel: discord.TextChannel, p: poll.Poll):
+    content = f"**{p.title}**\n\n"
+
+    for option in p.param:
+        _emoji, description = option
+
+        content += f"{_emoji} - {description}\n"
+
+    await bot.responses.send(channel=channel, make_embed=False, content=content, reactions=p.emojis)
+
+
 async def create_poll(bot, guild: discord.Guild, channel: discord.TextChannel, _poll: poll.Poll):
     role_controller = bot.get_role_controller(guild)
     extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
@@ -42,8 +53,8 @@ def format_poll(guild: discord.Guild, _poll: poll.Poll) -> str:
 
     p = ""
     for r in _poll.param:
-        p += content1.format(emoji=r[2], role=guild.get_role(r[0]).mention,
-                             name=f": {r[1]}")
+        p += content1.format(emoji=r[0], role=guild.get_role(r[2]).mention,
+                             name=f"{':' if r[1] else ''} {r[1]}")
 
     return content.format(title=_poll.title, poll=p)
 
@@ -58,12 +69,15 @@ async def handle_reaction(bot, guild: discord.Guild, channel: discord.TextChanne
 
         if message_id == _message_id and channel.id == _channel_id:
             for _role in _poll[3:]:
-                if emoji == _role[2]:
-                    return guild.get_role(_role[0])
+                if emoji == _role[0]:
+                    return guild.get_role(_role[2])
 
 
 async def add_reaction(bot, guild: discord.Guild, channel: discord.TextChannel, message_id, member: discord.Member,
                           emoji):
+    if member.bot:
+        return
+
     role = await handle_reaction(bot, guild, channel, message_id, member, emoji)
 
     await member.add_roles(role)

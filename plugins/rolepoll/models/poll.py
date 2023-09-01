@@ -10,7 +10,7 @@ class Poll:
     _options: List[List[Union[int, str]]]
     _title: str
 
-    def __init__(self, message_id: int, channel_id: int, title: str, poll: List[List[Union[int, str]]], id: str  = 0):
+    def __init__(self, message_id: int, channel_id: int, title: str, poll: List[Any], id: str  = 0):
         self._message_id = message_id
         self._channel_id = channel_id
         self._title = title
@@ -19,17 +19,18 @@ class Poll:
         self._id = id if id != 0 else str(hashlib.sha1(str(poll).encode("utf-8")).hexdigest())
 
         for role in poll:
-            role_id = role[0]
-            name = role[1]
-            emoji = role[2]
+            # role_id = role[0]
+            # name = role[1]
+            # emoji = role[2]
 
-            self._options.append([role_id, name, emoji])
+            # self._options.append([role_id, name, emoji])
+            self._options.append(role)
 
     @property
     def emojis(self) -> List[str]:
         emojis = []
         for para in self._options:
-            emojis.append(para[2])
+            emojis.append(para[0])
 
         return emojis
 
