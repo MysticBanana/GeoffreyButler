@@ -37,11 +37,5 @@ class Geoffrey(botbase.BotBase):
         await cogs.events.setup(self)
         await cogs.general.setup(self)
 
-        # test
-
-
-        print("ready")
-
-
 
 
