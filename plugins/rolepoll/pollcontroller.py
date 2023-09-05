@@ -33,6 +33,10 @@ async def simple_poll(bot, guild: discord.Guild, channel: discord.TextChannel, p
     await bot.responses.send(channel=channel, make_embed=False, content=content, reactions=p.emojis)
 
 
+async def title_poll(bot, guild: discord.Guild, channel: discord.TextChannel, p: poll.Poll):
+    await bot.responses.send(channel=channel, make_embed=False, content=f"{p.title}", reactions=p.emojis)
+
+
 async def create_poll(bot, guild: discord.Guild, channel: discord.TextChannel, _poll: poll.Poll):
     role_controller = bot.get_role_controller(guild)
     extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
