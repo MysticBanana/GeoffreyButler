@@ -69,13 +69,20 @@ class UiMenu(ui.Modal):
         pass  # await interaction.response.send_message("submited", ephemeral=True)
 
 
-async def request_string(bot, channel, user: discord.Member, content):
-    await bot.responses.send(channel=channel, make_embed=False, content=content)
+async def request_string(bot, channel, user: discord.Member, content, ignore_character: str = "-"):
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                                   timeout=40.0)
 
-    return msg.content
+    if msg.content == ignore_character:
+        return ""
+
+    content = msg.content
+    await bot_msg.delete()
+    await msg.delete()
+
+    return content
 
 
 async def request_int(bot, channel, user: discord.Member, content, counter: int = 0) -> int:
@@ -83,13 +90,17 @@ async def request_int(bot, channel, user: discord.Member, content, counter: int 
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 0")
         return 0
 
-    await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                                   timeout=40.0)
 
+    content = msg.content
+    await bot_msg.delete()
+    await msg.delete()
+
     try:
-        return int(msg.content)
+        return int(content)
 
     except ValueError:
         return await request_int(bot, channel, user, content, counter + 1)
@@ -100,13 +111,16 @@ async def request_emoji(bot, channel, user: discord.Member, content, counter: in
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing a random emoji")
         return str(random.choice(bot.emojis))
 
-    await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                                   timeout=40.0)
+    content = msg.content
+    await bot_msg.delete()
+    await msg.delete()
 
-    if emoji.is_emoji(msg.content) or msg.content.strip() in msg.content in [str(i) for i in bot.emojis]:
-        return msg.content
+    if emoji.is_emoji(content) or content.strip() in content in [str(i) for i in bot.emojis]:
+        return content
     else:
         return await request_emoji(bot, channel, user, content, counter + 1)
 
@@ -116,21 +130,25 @@ async def request_bool(bot, channel, user: discord.Member, content, counter: int
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 'No'")
         return False
 
-    await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                                   timeout=40.0)
 
-    if msg.content == "yes" or msg.content == "Yes" or msg.content == "y":
+    content = msg.content
+    await bot_msg.delete()
+    await msg.delete()
+
+    if content == "yes" or content == "Yes" or content == "y":
         return True
-    elif msg.content == "no" or msg.content == "No" or msg.content == "n":
+    elif content == "no" or content == "No" or content == "n":
         return False
     else:
         return await request_bool(bot, channel, user, content, counter + 1)
 
 
 async def request_roles(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.Role]:
-    await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries")
@@ -139,11 +157,16 @@ async def request_roles(bot, channel, user: discord.Member, content, counter: in
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                              timeout=40.0)
 
-    if len(msg.role_mentions) == 0:
+    content = msg.content
+    roles = msg.role_mentions
+    await bot_msg.delete()
+    await msg.delete()
+
+    if len(roles) == 0:
         # retry
         return await request_roles(bot, channel, user, content, counter + 1)
 
-    return msg.role_mentions
+    return roles
 
 
 async def request_channel(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.TextChannel]:
@@ -151,13 +174,18 @@ async def request_channel(bot, channel, user: discord.Member, content, counter: 
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries")
         return []
 
-    await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                              timeout=40.0)
 
-    if len(msg.channel_mentions) == 0:
+    content = msg.content
+    channels = msg.channel_mentions
+    await bot_msg.delete()
+    await msg.delete()
+
+    if len(channels) == 0:
         # retry
         return await request_channel(bot, channel, user, content, counter + 1)
 
-    return msg.channel_mentions
+    return channels

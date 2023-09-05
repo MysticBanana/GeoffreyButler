@@ -114,9 +114,12 @@ class BotBase(commands.Bot):
         if not self.plugin_path.is_dir():
             return
 
+        extensions = [i.strip() for i in self.config.get("FILES", "extensions").split(",")]
+
         # iterate through all modules in the plugins folder
         for module in self.plugin_path.iterdir():
-            await self.load_plugin(self.plugin_path, module.stem)
+            if module.name in extensions:
+                await self.load_plugin(self.plugin_path, module.stem)
 
         self.logger.info("Successfully loaded all plugins")
 

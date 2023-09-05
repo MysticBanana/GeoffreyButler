@@ -1,5 +1,5 @@
 import os
-from . import FileHandler
+from . import file_handler
 from pathlib import Path
 import helper
 from typing import Dict, Any
@@ -24,7 +24,7 @@ class ConfigHandler:
         if (self.path / self.server_config_name).is_file():
             self._exists = True
 
-        self.config: FileHandler.FileHandler = FileHandler.FileHandler(
+        self.config: file_handler.FileHandler = file_handler.FileHandler(
             Path.joinpath(self.path, self.server_config_name))
 
         self.logger.info(f"Loading guild {guild.name} Id: {guild.guild_id}")
@@ -48,7 +48,7 @@ class ConfigHandler:
         if not (path / ConfigHandler.server_config_name).is_file():
             return
 
-        config: FileHandler.FileHandler = FileHandler.FileHandler(
+        config: file_handler.FileHandler = file_handler.FileHandler(
             Path.joinpath(path, ConfigHandler.server_config_name))
 
         return config.content
