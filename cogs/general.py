@@ -1,3 +1,5 @@
+import random
+
 import discord
 from discord.ext import commands
 from core import botbase
@@ -23,8 +25,33 @@ class General(commands.Cog):
         )
 
         await self.bot.responses.send(embed=embed, channel=ctx.channel)
+        await ctx.message.delete()
+
+    @commands.command(name="role", description="Returns a random number")
+    async def role(self, ctx, number: int = 6):
+        if number > 100:
+            await self.bot.responses.send(channel=ctx.channel, content="This number is too high (max 100).")
+            return
+
+        embed = messages.embeds.build_embed(
+            title=f"**Random number**",
+            description=f"{random.randint(1, number)}"
+        )
+
+        await self.bot.responses.send(channel=ctx.channel, embed=embed)
+        await ctx.message.delete()
+
+    @commands.command(name="purge", description="Deletes an amount of messages")
+    @commands.has_permissions(administrator=True)
+    async def purge(self, ctx, number: int = 1):
+        if number > 100:
+            await self.bot.responses.send(channel=ctx.channel, content="This number is too high (max 100).")
+            return
+
+        await ctx.channel.purge(limit=number)
 
     @commands.command(name="announce", description="Create an announcement for you")
+    @commands.has_permissions(administrator=True)
     async def announce(self, ctx):
 
         req = "Insert the title"
@@ -46,23 +73,50 @@ class General(commands.Cog):
             req = "Insert the roles you want to mention"
             roles = await helper.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Insert the channel you want your message to be posted"
-        channel = await helper.interactive_menu.request_channel(self.bot, ctx.channel, ctx.author, req)
+        req = "Insert the channel(s) you want your message to be posted"
+        channels = await helper.interactive_menu.request_channel(self.bot, ctx.channel, ctx.author, req)
 
         embed = messages.embeds.build_embed(
-            title=title,
+            title=f"**{title}**",
             description=description,
             thumbnail=thumbnail
         )
 
-        if len(roles) > 0:
-            await self.bot.responses.send(channel=channel[0], content=" ".join([i.mention for i in roles]), make_embed=False)
+        for c in channels:
+            if len(roles) > 0:
+                await self.bot.responses.send(channel=c, content=" ".join([i.mention for i in roles]), make_embed=False)
 
-        await self.bot.responses.send(channel=channel[0], embed=embed)
+            await self.bot.responses.send(channel=c, embed=embed)
+
+        await ctx.message.delete()
 
     @commands.command(name="edit_announcement", description="Edits a already created message by the bot")
-    async def about(self, ctx):
-        pass
+    @commands.has_permissions(administrator=True)
+    async def edit_announcement(self, ctx):
+        req = "Enter the message id"
+        message_id = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+        # this might not work with messages in different channels
+        message = await ctx.fetch_message(message_id)
+
+        req = "Insert the title"
+        title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+        req = "Insert the link to the displayed thumbnail ('-' for None)"
+        thumbnail = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+        req = "Insert the description of your announcement"
+        description = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+        embed = messages.embeds.build_embed(
+            title=f"**{title}**",
+            description=description,
+            thumbnail=thumbnail
+        )
+
+        await message.edit(embed=embed)
+        await ctx.message.delete()
+
 
 async def setup(bot):
     await bot.add_cog(General(bot))
