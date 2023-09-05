@@ -82,6 +82,7 @@ class PollCog(commands.Cog, name="Poll"):
                                                                                  " an interactive menu. The user can "
                                                                                  "choose his own emojis or use "
                                                                                  "default (1-10).")
+    @commands.has_permissions(administrator=True)
     async def create_poll(self, ctx, channel: discord.TextChannel = None):
         """
         Creates a customizable role poll with an interactive menu. The user can choose his own emojis or use
