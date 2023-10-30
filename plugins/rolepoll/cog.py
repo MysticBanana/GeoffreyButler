@@ -1,26 +1,35 @@
-import discord
 from discord.ext import commands
-from core import botbase
-from core.audio import audiocontroller
-from . import config
-from core import messages
-from core.messages import view_controller
-from core import helper
-import helper as _helper
-from typing import Optional, Tuple, Union, Dict, List
+from typing import List
+
 import discord
+import emoji as discord_emoji
+from discord.ext import commands
+
+import helper as _helper
+from core import botbase
+from core import helper
+from . import config
 from . import pollcontroller
 from .models import poll
-import emoji as discord_emoji
 
 
-class RolePollCog(commands.Cog):
+class PollCog(commands.Cog, name="Poll"):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
         self.logger = _helper.Logger().get_logger(self.__class__.__name__)
 
-    @commands.command(name="poll", help="simple poll")
-    async def create_simple_poll(self, ctx):
+    @commands.command(name="poll", help="Poll with multiple options", description="Creates a customizable poll with an "
+                                                                                  "interactive menu. The user can "
+                                                                                  "choose his own emojis or use "
+                                                                                  "default (1-10).")
+    async def create_simple_poll(self, ctx, channel: discord.TextChannel = None):
+        """
+        Creates a customizable poll with an interactive menu. The user can choose his own emojis or use default (1-10).
+
+        :param ctx: Context
+        :param channel: Channel to send the finished poll
+        """
+
         req = "Insert your poll title"
         title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
@@ -48,11 +57,41 @@ class RolePollCog(commands.Cog):
 
         p = poll.Poll(None, None, title, p, 1)
 
-        await pollcontroller.simple_poll(self.bot, ctx.guild, ctx.channel, p)
+        await pollcontroller.simple_poll(self.bot, ctx.guild, channel or ctx.channel, p)
+        await ctx.message.delete()
 
+    @commands.command(name="shortpoll", help="Poll with 2 options", description="Creates a simple poll with "
+                                                                                "`thump up/down` reaction.")
+    async def create_short_poll(self, ctx, channel: discord.TextChannel = None):
+        """
+        Creates a simple poll with `thump up/down` reaction.
 
-    @commands.command(name="rp_create", help="creates a poll to assign roles")
-    async def create_poll(self, ctx):
+        :param ctx: Context
+        :param channel: Channel to send the finished poll
+        """
+
+        req = "Insert your poll title"
+        title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+        p = poll.Poll(None, None, title, [("👍",), ("👎",)], 1)
+
+        await pollcontroller.title_poll(self.bot, ctx.guild, channel or ctx.channel, p)
+        await ctx.message.delete()
+
+    @commands.command(name="rp_create", help="Poll to assign roles", description="Creates a customizable role poll with"
+                                                                                 " an interactive menu. The user can "
+                                                                                 "choose his own emojis or use "
+                                                                                 "default (1-10).")
+    @commands.has_permissions(administrator=True)
+    async def create_poll(self, ctx, channel: discord.TextChannel = None):
+        """
+        Creates a customizable role poll with an interactive menu. The user can choose his own emojis or use
+        default (1-10).
+
+        :param ctx: Context
+        :param channel: Channel to send the finished poll
+        """
+
         role_controller = self.bot.get_role_controller(ctx.guild)
         extension_controller = self.bot.get_extension_config_handler(ctx.guild, config.EXTENSION_NAME)
 
@@ -84,7 +123,8 @@ class RolePollCog(commands.Cog):
 
         p = poll.Poll(message_id=0, channel_id=ctx.channel.id, title=title, poll=_poll)
 
-        await pollcontroller.create_poll(self.bot, ctx.guild, ctx.channel, p)
+        await pollcontroller.create_poll(self.bot, ctx.guild, channel or ctx.channel, p)
+        await ctx.message.delete()
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -120,4 +160,4 @@ class RolePollCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(RolePollCog(bot))
+    await bot.add_cog(PollCog(bot))

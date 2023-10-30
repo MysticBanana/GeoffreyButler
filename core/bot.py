@@ -14,11 +14,20 @@ from typing import Tuple, List, Union, Callable
 import inspect
 from core import botbase
 from . import messages
+from pretty_help import PrettyHelp
+from core.messages import message_config
 
 
 class Geoffrey(botbase.BotBase):
     def __init__(self, command_prefix="?", **kwargs):
         super().__init__(command_prefix, **kwargs)
+
+        self.color_theme = message_config.ThemeBlue
+        self.help_command = PrettyHelp(color=message_config.get_color(self.color_theme.DARK.value),
+                                       delete_invoke=True,
+                                       ending_note=f"Type {self.command_prefix}help command for more info on a command."
+                                                   f"\nDiscord bot by MysticBanana",
+                                       )
 
     async def on_ready(self):
         await self.change_presence(activity=discord.Game(name=f'{self.command_prefix}help || Version: {self.VERSION}'))
