@@ -66,6 +66,12 @@ class BotBase(commands.Bot):
         self.logger.info("loading message controller")
         self.responses = messages.MessageController(self)
 
+        self.logger.info("Reading owners")
+        for owner_id in self.config.get("DISCORD", "owners").split(","):
+            self.owner_ids.add(owner_id.strip())
+
+        self.logger.info("Done init")
+
     def load_guilds_from_config(self):
         """
         Called on start to load all guilds from saved config files

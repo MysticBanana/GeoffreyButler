@@ -36,6 +36,7 @@ class Geoffrey(botbase.BotBase):
         await cogs.example_cog.setup(self)
         await cogs.events.setup(self)
         await cogs.general.setup(self)
+        await cogs.permissions.setup(self)
 
 
 

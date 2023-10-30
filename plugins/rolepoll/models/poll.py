@@ -19,11 +19,6 @@ class Poll:
         self._id = id if id != 0 else str(hashlib.sha1(str(poll).encode("utf-8")).hexdigest())
 
         for role in poll:
-            # role_id = role[0]
-            # name = role[1]
-            # emoji = role[2]
-
-            # self._options.append([role_id, name, emoji])
             self._options.append(role)
 
     @property
