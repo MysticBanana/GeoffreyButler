@@ -7,7 +7,7 @@ from configparser import ConfigParser
 import helper
 import importlib.util
 import importlib.machinery
-from . import messages, audio, roles
+from . import messages, audio, roles, permissions
 import inspect
 
 
@@ -22,6 +22,17 @@ class BotBase(commands.Bot):
 
     responses: messages.MessageController
     audio_controller: Dict[discord.Guild, audio.Controller] = {}
+
+    class GuildMapper:
+        client: "BotBase"
+
+        def __getattr__(self, item) -> Guild:
+            return self.client.guilds.get(int(item))
+
+    @property
+    def guild(self) -> GuildMapper:
+        """ Uses dot notation to access guild data"""
+        return self.GuildMapper()
 
     @property
     def guilds(self) -> Dict[int, Guild]:
@@ -42,6 +53,7 @@ class BotBase(commands.Bot):
     def __init__(self, command_prefix: str = "?", *args, **kwargs):
 
         intents = discord.Intents.all()
+        self.GuildMapper.client = self
 
         super().__init__(command_prefix, intents=intents, *args, **kwargs)
 

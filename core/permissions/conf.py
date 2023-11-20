@@ -1,7 +1,7 @@
 import enum
 
-class Permissions(enum.Enum):
-    Base = 0
-    Extended = 1
-    Moderator = 2
-    Admin = 3
+class PermissionType(enum.Enum):
+    BASE = 0
+    EXTENDED = 1
+    MODERATOR = 2
+    ADMIN = 3
