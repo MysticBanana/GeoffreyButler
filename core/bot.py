@@ -19,10 +19,14 @@ from core.messages import message_config
 
 
 class Geoffrey(botbase.BotBase):
+
+    instance: "Geoffrey"
+
     def __init__(self, command_prefix="?", **kwargs):
         super().__init__(command_prefix, **kwargs)
 
         self.color_theme = message_config.ThemeBlue
+        Geoffrey.instance = self
         self.help_command = PrettyHelp(color=message_config.get_color(self.color_theme.DARK.value),
                                        delete_invoke=True,
                                        ending_note=f"Type {self.command_prefix}help command for more info on a command."
@@ -45,6 +49,7 @@ class Geoffrey(botbase.BotBase):
         await cogs.example_cog.setup(self)
         await cogs.events.setup(self)
         await cogs.general.setup(self)
+        await cogs.permissions.setup(self)
 
 
 

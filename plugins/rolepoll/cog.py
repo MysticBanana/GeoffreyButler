@@ -12,12 +12,15 @@ from . import config
 from . import pollcontroller
 from .models import poll
 
+from core.permissions.decorators import has_custom_permission
+from core.permissions import conf
 
 class PollCog(commands.Cog, name="Poll"):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
         self.logger = _helper.Logger().get_logger(self.__class__.__name__)
 
+    @commands.cooldown(3, 10)
     @commands.command(name="poll", help="Poll with multiple options", description="Creates a customizable poll with an "
                                                                                   "interactive menu. The user can "
                                                                                   "choose his own emojis or use "
@@ -60,6 +63,7 @@ class PollCog(commands.Cog, name="Poll"):
         await pollcontroller.simple_poll(self.bot, ctx.guild, channel or ctx.channel, p)
         await ctx.message.delete()
 
+    @commands.cooldown(3, 10)
     @commands.command(name="shortpoll", help="Poll with 2 options", description="Creates a simple poll with "
                                                                                 "`thump up/down` reaction.")
     async def create_short_poll(self, ctx, channel: discord.TextChannel = None):
@@ -78,10 +82,12 @@ class PollCog(commands.Cog, name="Poll"):
         await pollcontroller.title_poll(self.bot, ctx.guild, channel or ctx.channel, p)
         await ctx.message.delete()
 
+    @commands.cooldown(3, 10)
     @commands.command(name="rp_create", help="Poll to assign roles", description="Creates a customizable role poll with"
                                                                                  " an interactive menu. The user can "
                                                                                  "choose his own emojis or use "
                                                                                  "default (1-10).")
+    @has_custom_permission(name=conf.PermissionType.MODERATOR)
     async def create_poll(self, ctx, channel: discord.TextChannel = None):
         """
         Creates a customizable role poll with an interactive menu. The user can choose his own emojis or use

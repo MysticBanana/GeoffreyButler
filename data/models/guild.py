@@ -6,6 +6,8 @@ from data import ConfigHandler, ExtensionConfigHandler
 from . import base
 from . import user
 from . import role
+from . import permission
+from core.permissions import conf
 
 from collections import defaultdict
 
@@ -15,12 +17,13 @@ class GuildData(base.BaseObject):
     name: str
 
     users: Dict[int, Any]
+    permissions: permission.Permissions
     roles: role.Roles
 
     # used to store extension specific data
     extension: Dict[str, Any]
 
-    __slots__ = ("guild_id", "name", "users", "extension", "roles")
+    __slots__ = ("guild_id", "name", "users", "extension", "roles", "permissions")
 
     def __init__(self, guild_id: int = None, name: str = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -29,6 +32,9 @@ class GuildData(base.BaseObject):
         self.name = name or kwargs.get("name")
 
         self.users = kwargs.get("users", {})
+        self.permissions = kwargs.get("permissions")
+        self.permissions = permission.Permissions.from_dict(self.permissions) if self.permissions is not None \
+            else permission.Permissions()
         self.extension = kwargs.get("extension", {})
         self.roles = kwargs.get("roles")
         self.roles = role.Roles.from_dict(self.roles) if self.roles is not None else role.Roles()
@@ -65,6 +71,12 @@ class Guild:
                 return getattr(self.guild_data, item)
 
         raise AttributeError
+
+    def add_permission(self, permission: permission.Permission):
+        self.guild_data.permissions.add_permission(permission)
+
+    def check_permission(self, permission: conf.PermissionType, role: discord.Role):
+        return self.guild_data.permissions.has_permission(permission, role)
 
     def get_role(self, *, id: int) -> role.Role:
         return self.guild_data.roles.get_role(id=id)
