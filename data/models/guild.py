@@ -7,6 +7,7 @@ from . import base
 from . import user
 from . import role
 from . import permission
+from core.permissions import conf
 
 from collections import defaultdict
 
@@ -73,6 +74,9 @@ class Guild:
 
     def add_permission(self, permission: permission.Permission):
         self.guild_data.permissions.add_permission(permission)
+
+    def check_permission(self, permission: conf.PermissionType, role: discord.Role):
+        return self.guild_data.permissions.has_permission(permission, role)
 
     def get_role(self, *, id: int) -> role.Role:
         return self.guild_data.roles.get_role(id=id)

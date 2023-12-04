@@ -39,15 +39,11 @@ class Permissions(commands.Cog):
         guild.add_permission(permission)
         guild.flush()
 
-        # write to json
-        # caching results in dataclass?
-        # autosaving
-        # decorator checks json or dataclass?
-
     @commands.command(name="test_permission", description="Sets a role to a specific permission level")
-    @has_custom_permission(name=conf.PermissionType.ADMIN)
+    @commands.cooldown(1, 2)
+    @has_custom_permission(name=conf.PermissionType.MODERATOR)
     async def test_permission(self, ctx):
-        print("aye")
+        pass
 
 
 async def setup(bot):

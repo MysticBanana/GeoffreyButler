@@ -4,6 +4,7 @@ from data import ConfigHandler, ExtensionConfigHandler
 from . import base
 from . import user
 from . import role
+from core.permissions import conf
 
 from collections import defaultdict
 
@@ -46,6 +47,17 @@ class Permissions(base.BaseObject):
 
         for k, permission_data in kwargs.items():
             self.permissions[int(k)] = Permission.from_dict(**permission_data)
+
+    def has_permission(self, permission: conf.PermissionType, role: discord.Role) -> bool:
+
+
+        for level, perm in self.permissions.items():
+
+            if role.id in perm.role_ids:
+                if permission.value <= level:
+                    return True
+
+        return False
 
     def add_permission(self, permission: Permission):
         perm = self.permissions.get(permission.level)
