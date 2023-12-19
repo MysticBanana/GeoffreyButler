@@ -1,5 +1,5 @@
 import discord.guild
-from typing import Dict, Any, Optional, List, Set
+from typing import Dict, Any, Optional, List, Set, Union
 from data import ConfigHandler, ExtensionConfigHandler
 from . import base
 from . import user
@@ -14,7 +14,7 @@ class Permission(base.BaseObject):
     role_ids: Set[int] = []
     level: int = 0
 
-    def __init__(self, role_id: int = None, role_ids: Set[int] | List[int] = None, level: int = 0, *args, **kwargs):
+    def __init__(self, role_id: int = None, role_ids: Union[Set[int], List[int]] = None, level: int = 0, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if role_id is not None:
