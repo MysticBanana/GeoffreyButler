@@ -57,15 +57,15 @@ class General(commands.Cog):
         req = "Insert the title"
         title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Insert the link to the displayed thumbnail ('.' for None)"
-        thumbnail = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
-        if thumbnail == ".":
+        req = "Insert the link to the displayed thumbnail"
+        thumbnail = await helper.interactive_menu.request_url(self.bot, ctx.channel, ctx.author, req)
+        if thumbnail == "":
             thumbnail = None
 
         req = "Insert the description of your announcement"
         description = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Do you want to mention roles?"
+        req = "Do you want to mention roles? (Yes / No)"
         mention = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
         roles = []
@@ -102,7 +102,7 @@ class General(commands.Cog):
         req = "Insert the title"
         title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Insert the link to the displayed thumbnail ('-' for None)"
+        req = "Insert the link to the displayed thumbnail"
         thumbnail = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
         req = "Insert the description of your announcement"
