@@ -1,5 +1,5 @@
 import discord.guild
-from typing import Dict, Any, Optional, List, Set
+from typing import Dict, Any, Optional, List, Set, Union
 from data import ConfigHandler, ExtensionConfigHandler
 from . import base
 from . import user

@@ -14,6 +14,8 @@ from .models import poll
 from core.permissions.decorators import has_custom_permission
 from core.permissions import conf
 
+from core.permissions.decorators import has_custom_permission
+from core.permissions import conf
 
 class PollCog(commands.Cog, name="Poll"):
     def __init__(self, bot: botbase.BotBase):
