@@ -3,6 +3,7 @@ from typing import Optional, Tuple, Union, Dict, List, Any
 import discord
 from discord import ui
 import emoji
+import validators
 
 
 class Menu:
@@ -54,8 +55,6 @@ class UiMenu(ui.Modal):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # todo test
-
         options: Tuple[Union[Dict, discord.ui.TextInput]] = kwargs.get("options", tuple())
 
         for option in options:
@@ -69,44 +68,52 @@ class UiMenu(ui.Modal):
         pass  # await interaction.response.send_message("submited", ephemeral=True)
 
 
-async def request_string(bot, channel, user: discord.Member, content, ignore_character: str = "-"):
-    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
+def request_decorate(func):
+    async def func_wrapper(bot, channel, user: discord.Member, content, ignore_character: str = "cancel",
+                          counter: int = 0):
+        if counter > 3:
+            await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 0")
+            return 0
 
-    msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                  timeout=40.0)
+        if counter == 0:
+            content = f"{content}\n*Type <{ignore_character}> to cancel the request*"
 
-    if msg.content == ignore_character:
-        return ""
+        bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
-    content = msg.content
-    await bot_msg.delete()
-    await msg.delete()
+        msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
+                                timeout=40.0)
 
-    return content
+        if msg.content == ignore_character:
+            return None
 
+        await bot_msg.delete()
+        await msg.delete()
 
-async def request_int(bot, channel, user: discord.Member, content, counter: int = 0) -> int:
-    if counter > 3:
-        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 0")
-        return 0
+        if func(msg.content) is not None:
+            return func(msg.content)
+        else:
+            await func_wrapper(bot, channel, user, content, ignore_character, counter+1)
 
-    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
+    return func_wrapper
 
-    msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                  timeout=40.0)
+@request_decorate
+def request_string(msg) -> str:
+    return msg
 
-    content = msg.content
-    await bot_msg.delete()
-    await msg.delete()
+@request_decorate
+def request_url(msg) -> Optional[str]:
+    return msg if validators.url(msg) else None
 
+@request_decorate
+def request_int(msg) -> Optional[int]:
     try:
-        return int(content)
+        return int(msg)
 
     except ValueError:
-        return await request_int(bot, channel, user, content, counter + 1)
+        return None
 
 
-async def request_emoji(bot, channel, user: discord.Member, content, counter: int = 0) -> str:
+async def request_emoji(bot, channel, user: discord.Member, content, counter: int = 0) -> Optional[str]:
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing a random emoji")
         return str(random.choice(bot.emojis))
@@ -122,29 +129,16 @@ async def request_emoji(bot, channel, user: discord.Member, content, counter: in
     if emoji.is_emoji(content) or content.strip() in content in [str(i) for i in bot.emojis]:
         return content
     else:
-        return await request_emoji(bot, channel, user, content, counter + 1)
+        return None
 
-
-async def request_bool(bot, channel, user: discord.Member, content, counter: int = 0) -> bool:
-    if counter > 3:
-        await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries. Choosing 'No'")
-        return False
-
-    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
-
-    msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                  timeout=40.0)
-
-    content = msg.content
-    await bot_msg.delete()
-    await msg.delete()
-
+@request_decorate
+def request_bool(content) -> bool:
     if content == "yes" or content == "Yes" or content == "y":
         return True
     elif content == "no" or content == "No" or content == "n":
         return False
     else:
-        return await request_bool(bot, channel, user, content, counter + 1)
+        return None
 
 
 async def request_roles(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.Role]:
