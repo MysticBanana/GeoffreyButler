@@ -2,6 +2,7 @@ import os
 from . import file_handler
 from pathlib import Path
 import helper
+from helper import Logger, logger
 from typing import Dict, Any
 
 
@@ -19,7 +20,7 @@ class ConfigHandler:
         self.path: Path = bot.project_root / "json" / str(guild.guild_id)
         self.path.mkdir(parents=True, exist_ok=True)
 
-        self.logger = helper.Logger().get_logger(self.__class__.__name__)
+        self.logger = Logger().get_logger(self.__class__.__name__)
 
         if (self.path / self.server_config_name).is_file():
             self._exists = True

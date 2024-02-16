@@ -70,5 +70,3 @@ class Roles(base.BaseObject):
     @staticmethod
     def from_dict(data: List[Any]) -> "Roles":
         return Roles(*data)
-
-

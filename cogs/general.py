@@ -1,6 +1,5 @@
 import random
 
-import discord
 from discord.ext import commands
 from core import botbase
 from core import helper
@@ -8,7 +7,7 @@ from typing import Optional, Tuple, Union, Dict, List
 from core import messages
 
 
-class General(commands.Cog):
+class General(commands.Cog, name="General"):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
 
@@ -116,6 +115,11 @@ class General(commands.Cog):
 
         await message.edit(embed=embed)
         await ctx.message.delete()
+
+    @commands.command(name="test", description="test")
+    @commands.has_permissions(administrator=True)
+    async def test(self, ctx):
+        pass
 
 
 async def setup(bot):

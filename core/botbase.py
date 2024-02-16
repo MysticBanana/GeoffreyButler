@@ -10,6 +10,8 @@ import importlib.machinery
 from . import messages, audio, roles, permissions
 import inspect
 
+from helper import Logger, logger
+
 
 class BotBase(commands.Bot):
     ROOT: Path = ""
@@ -51,7 +53,6 @@ class BotBase(commands.Bot):
         BotBase.ROOT = value
 
     def __init__(self, command_prefix: str = "?", *args, **kwargs):
-
         intents = discord.Intents.all()
         self.GuildMapper.client = self
 
@@ -70,13 +71,16 @@ class BotBase(commands.Bot):
         self.VERSION = self.config.getfloat("DEFAULT", "version", fallback=self.VERSION)
         self.plugin_path: Path = Path(self.project_root.joinpath(self.config.get("FILES", "plugins")))
 
-        self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
+        # self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
+        logger = Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode)
+        self.logger = logger.logger
         self.logger.info("Loaded basic setup")
 
         self.load_guilds_from_config()
 
         self.logger.info("loading message controller")
         self.responses = messages.MessageController(self)
+        messages.controller = self.responses
 
         self.logger.info("Reading owners")
         for owner_id in self.config.get("DISCORD", "owners").split(","):
@@ -153,6 +157,7 @@ class BotBase(commands.Bot):
         spec = plugin_finder.find_spec(name)
 
         await self._load_from_module_spec(spec, name)
+
         self.PLUGINS.append(name)
 
         self.logger.info(f"Done")
@@ -191,14 +196,10 @@ class BotBase(commands.Bot):
         if context.message:
             await context.message.delete()
 
-        self.logger.warning(exception)
-
-        # Cooldown on command triggered
-        if type(exception) == commands.CommandOnCooldown:
-            return
+        self.logger.error(exception)
 
         if type(exception) == commands.CommandInvokeError:
-            print("i messed up sorry")
+            pass
 
     async def setup_hook(self) -> None:
         for name, view in inspect.getmembers(messages.views):

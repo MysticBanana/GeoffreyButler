@@ -13,7 +13,7 @@ class Events(commands.Cog):
     async def on_guild_join(self, guild: discord.guild.Guild):
         self.bot.register_guild(guild)
 
-        # todo some message stuff idk
+        # todo check in settings if welcome message is enabled
 
     @commands.Cog.listener()
     async def on_message(self, message):

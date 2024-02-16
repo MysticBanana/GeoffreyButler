@@ -45,8 +45,9 @@ class Geoffrey(botbase.BotBase):
         self.logger.info("Plugins loaded")
 
         self.logger.info("setting up cogs")
-        # setup your commands
-        await cogs.example_cog.setup(self)
+
+        # setup commands
+        # await cogs.example_cog.setup(self)
         await cogs.events.setup(self)
         await cogs.general.setup(self)
         await cogs.permissions.setup(self)
