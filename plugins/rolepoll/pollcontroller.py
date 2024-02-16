@@ -50,6 +50,33 @@ async def create_poll(bot, guild: discord.Guild, channel: discord.TextChannel, _
     extension_controller.update(_poll.jsonify())
     extension_controller.flush()
 
+async def modify_poll(bot, guild: discord.Guild, channel: discord.TextChannel, reference: discord.MessageReference,
+                      _poll: poll.Poll):
+    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
+    content = format_poll(guild, _poll)
+
+    # message = channel.fetch_message(reference.message_id)
+    # todo how to getch the message correctly
+    message: discord.Message = await bot.fetch_message(reference.message_id)
+    await message.edit(content=content)
+    # todo edit reactions
+
+    extension_controller.update(_poll.jsonify())
+    extension_controller.flush()
+
+
+def get_poll_by_id(bot, guild: discord.Guild, message_id: int):
+    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
+
+    p = None
+    for _id, data in extension_controller.get_all().items():
+        if data[0] == message_id:
+            return poll.Poll.from_dict({_id:data})
+
+def remove_poll(bot, guild: discord.Guild, _poll: poll.Poll):
+    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
+    extension_controller.remove(_poll.id)
+    extension_controller.flush()
 
 def format_poll(guild: discord.Guild, _poll: poll.Poll) -> str:
     content = "{prefix}{{title}}**\n\n{{poll}}".format(prefix=RP_PREFIX)

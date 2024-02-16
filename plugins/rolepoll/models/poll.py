@@ -38,6 +38,10 @@ class Poll:
         self._message_id = value
 
     @property
+    def id(self):
+        return self._id
+
+    @property
     def channel_id(self) -> int:
         return self._channel_id
 
@@ -45,16 +49,28 @@ class Poll:
     def title(self):
         return self._title
 
+    @title.setter
+    def title(self, value: str):
+        self._title = value
+
     @property
     def param(self):
         return self._options
 
+    @param.setter
+    def param(self, value: List):
+        self._options = value
+
     @staticmethod
     def from_dict(data: Dict[str, List[Union[int, str, List[Union[int , str]]]]]) -> "Poll":
         id = list(data.keys())[0]
-        message_id, channel_id, title, data = list(data.values())
+        # message_id, channel_id, title, *d = *data.values()
+        d = next(data.values().__iter__()).copy()
+        message_id = d.pop(0)
+        channel_id = d.pop(0)
+        title = d.pop(0)
 
-        return Poll(message_id, channel_id, title, data, id)
+        return Poll(message_id, channel_id, title, d, id)
 
     def jsonify(self) -> Dict[str, List[Union[int, str, List[Union[int , str]]]]]:
         return {self._id: [self._message_id, self._channel_id, self._title] + self._options}

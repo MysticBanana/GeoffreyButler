@@ -142,7 +142,8 @@ def request_bool(content) -> bool:
 
 
 async def request_roles(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.Role]:
-    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=f"{content}\n*Type"
+                                                                                  f" <cancel> to cancel the request*")
 
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries")
@@ -150,14 +151,16 @@ async def request_roles(bot, channel, user: discord.Member, content, counter: in
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
                              timeout=40.0)
-
     content = msg.content
+
+    if content == "cancel":
+        return []
+
     roles = msg.role_mentions
     await bot_msg.delete()
     await msg.delete()
 
     if len(roles) == 0:
-        # retry
         return await request_roles(bot, channel, user, content, counter + 1)
 
     return roles

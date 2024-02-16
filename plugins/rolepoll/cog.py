@@ -113,7 +113,7 @@ class PollCog(commands.Cog, name="Poll"):
         assign_emoji = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
         for num, role in enumerate(roles):
-            req = f"Insert the displayed name '{role.name}' (insert '-' for none)"
+            req = f"Insert the displayed name '{role.name}'"
             displayed = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
             if assign_emoji:
@@ -131,6 +131,79 @@ class PollCog(commands.Cog, name="Poll"):
 
         await pollcontroller.create_poll(self.bot, ctx.guild, channel or ctx.channel, p)
         await ctx.message.delete()
+
+    @commands.cooldown(3, 10)
+    @commands.command(name="rp_modify", help="modify already posted role poll")
+    @has_custom_permission(name=conf.PermissionType.MODERATOR)
+    async def modify_poll(self, ctx: discord.ext.commands.Context):
+        reference = ctx.message.reference
+
+        if reference is None:
+            await self.bot.responses.send(channel=ctx.channel, content="You need to reference the poll you want to "
+                                                                       "edit (respond on it)")
+            return
+
+        p = pollcontroller.get_poll_by_id(self.bot, ctx.guild, reference.message_id)
+
+        req = f"Insert the title of your poll (old: {p.title})"
+        title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+        if title is not None:
+            p.title = title
+
+        req = "Insert all available roles"
+        roles = await helper.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
+        if len(roles) == 0:
+            roles = [ctx.guild.get_role(i[2]) for i in p.param]
+
+            req = "Do you want to edit role specific information"
+            edit_roles = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+
+            # just title has been set
+            if not edit_roles:
+                await pollcontroller.modify_poll(self.bot, ctx.guild, ctx.channel, reference, p)
+                await ctx.message.delete()
+                return
+
+        req = "Do you want to assign special emoji for each role? (max 10 roles)"
+        assign_emoji = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+
+        _poll: List[List[str, str, int]] = []
+        for num, role in enumerate(roles):
+            req = f"Insert the displayed name '{role.name}'"
+            displayed = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+            if assign_emoji:
+                req = f"Insert the displayed emoji '{role.name}'"
+                emoji = await helper.interactive_menu.request_emoji(self.bot, ctx.channel, ctx.author, req)
+            else:
+                # to many roles
+                if num > 9:
+                    return
+                emoji = discord_emoji.emojize(f":keycap_{num+1}:")
+
+            _poll.append([emoji, displayed, role.id])
+
+        await pollcontroller.modify_poll(self.bot, ctx.guild, ctx.channel, reference, p)
+        await ctx.message.delete()
+
+    @commands.cooldown(3, 10)
+    @commands.command(name="rp_remove", help="remove already posted role poll")
+    @has_custom_permission(name=conf.PermissionType.MODERATOR)
+    async def remove_poll(self, ctx: discord.ext.commands.Context):
+        reference = ctx.message.reference
+
+        if reference is None:
+            await self.bot.responses.send(channel=ctx.channel, content="You need to reference the poll you want to "
+                                                                       "edit (respond on it)")
+            return
+
+        p = pollcontroller.get_poll_by_id(self.bot, ctx.guild, reference.message_id)
+
+        pollcontroller.remove_poll(self.bot, ctx.guild, p)
+        message = await ctx.channel.fetch_message(reference.message_id)
+        await message.delete()
+
+        # todo on startup scan all polls and check if message is still alive
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):

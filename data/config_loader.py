@@ -71,6 +71,9 @@ class ExtensionConfigHandler:
     def get(self, name: str, *args) -> dict:
         return self.data.get(name, *args)
 
+    def get_all(self) -> dict:
+        return self.data
+
     def remove(self, key: Any) -> None:
         self.data.pop(key)
 
