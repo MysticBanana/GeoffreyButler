@@ -9,6 +9,7 @@ import importlib.util
 import importlib.machinery
 from . import messages, audio, roles, permissions
 import inspect
+import sqlalchemy
 
 
 class BotBase(commands.Bot):
@@ -72,6 +73,7 @@ class BotBase(commands.Bot):
 
         self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
         self.logger.info("Loaded basic setup")
+
 
         self.load_guilds_from_config()
 

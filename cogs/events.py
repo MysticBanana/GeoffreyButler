@@ -18,7 +18,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         """
-        THIS DOES NOT OVERWRITE THE ON_MESSAGE COMMAND
+        THIS DOES NOT OVERWRITE THE ON_MESSAGE METHOD
 
         following lines will be executed as well and do not affect the command execution
         """
