@@ -18,6 +18,17 @@ from pretty_help import PrettyHelp
 from core.messages import message_config
 
 
+
+import sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
+from  sqlalchemy.dialects.sqlite import aiosqlite
+from data import db
+
+
+
 class Geoffrey(botbase.BotBase):
 
     instance: "Geoffrey"
@@ -33,7 +44,27 @@ class Geoffrey(botbase.BotBase):
                                                    f"\nDiscord bot by MysticBanana",
                                        )
 
+    @property
+    def db_session(self) -> AsyncSession:
+        return self.session()
+
     async def on_ready(self):
+
+        self.logger.info("Setting up database")
+        engine = create_async_engine(
+            "sqlite+aiosqlite:///sqlite.db",
+            echo=True,
+        )
+
+        # async with engine.begin() as conn:
+        #     await conn.run_sync(db.Base.metadata.drop_all)
+        #     await conn.run_sync(db.Base.metadata.create_all)
+
+        # expire_on_commit=False will prevent attributes from being expired
+        # after commit.
+        self.session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+        self.logger.info("Done")
+
         await self.change_presence(activity=discord.Game(name=f'{self.command_prefix}help || Version: {self.VERSION}'))
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()

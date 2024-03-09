@@ -9,7 +9,15 @@ import importlib.util
 import importlib.machinery
 from . import messages, audio, roles, permissions
 import inspect
+
 import sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
+
+from data import db
+from data import db_utils
 
 
 class BotBase(commands.Bot):
@@ -74,7 +82,9 @@ class BotBase(commands.Bot):
         self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
         self.logger.info("Loaded basic setup")
 
+        db_utils.bot = self
 
+        # todo remove
         self.load_guilds_from_config()
 
         self.logger.info("loading message controller")
@@ -84,7 +94,14 @@ class BotBase(commands.Bot):
         for owner_id in self.config.get("DISCORD", "owners").split(","):
             self.owner_ids.add(owner_id.strip())
 
+        # self.logger.info("Loading Database")
+        # engine = sqlalchemy.create_engine('sqlite:///sqlite.db')
+        # self.session = sessionmaker(bind=engine, class_=AsyncSession)
+        #
+        # db.Base.metadata.create_all(engine)
+
         self.logger.info("Done init")
+
 
     def load_guilds_from_config(self):
         """
@@ -177,6 +194,8 @@ class BotBase(commands.Bot):
         if guild is None:
             return
 
+        raise
+
         _guild = Guild.from_guild(self, guild)
         self.load_guild(_guild)
 
@@ -184,8 +203,8 @@ class BotBase(commands.Bot):
         self.guilds[guild.guild_id] = guild
         guild.flush()
 
-    def is_guild_registered(self, guild_id: int) -> bool:
-        if guild_id in list(self.guilds.keys()):
+    async def is_guild_registered(self, guild_id: int) -> bool:
+        if await db_utils.fetch_guild(guild_id):
             return True
         return False
 

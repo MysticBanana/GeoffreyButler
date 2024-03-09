@@ -25,10 +25,7 @@ class Permission(base.BaseObject):
         self.level = level
 
     def jsonify(self):
-        return {
-            "role_ids": list(self.role_ids),
-            "level": self.level
-        }
+        return list(self.role_ids)
 
     @staticmethod
     def from_dict(**data: dict) -> "Permission":

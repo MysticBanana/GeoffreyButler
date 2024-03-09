@@ -81,7 +81,7 @@ def request_decorate(func):
         bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
         msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                timeout=40.0)
+                                timeout=65.0)
 
         if msg.content == ignore_character:
             return None
@@ -121,7 +121,7 @@ async def request_emoji(bot, channel, user: discord.Member, content, counter: in
     bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                  timeout=40.0)
+                                  timeout=65.0)
     content = msg.content
     await bot_msg.delete()
     await msg.delete()
@@ -150,7 +150,7 @@ async def request_roles(bot, channel, user: discord.Member, content, counter: in
         return []
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                             timeout=40.0)
+                             timeout=65.0)
     content = msg.content
 
     if content == "cancel":
@@ -174,7 +174,7 @@ async def request_channel(bot, channel, user: discord.Member, content, counter: 
     bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                             timeout=40.0)
+                             timeout=65.0)
 
     content = msg.content
     channels = msg.channel_mentions

@@ -2,24 +2,12 @@ from typing import Tuple, List, Dict, Union, Callable, Any, Optional
 import discord
 from . import config
 from .models import poll
+from data import db, db_utils
+from discord.ext.commands import Context
+from discord.utils import get
 
 
 RP_PREFIX = "**RolePoll - "
-
-
-async def cleanup(bot, guild: discord.Guild):
-    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
-
-    for id, _poll in extension_controller.data.items():
-        p = poll.Poll.from_dict({id: _poll})
-
-        try:
-            message = bot.fetch_channel(p.channel_id).fetch_message(p.message_id)
-        except discord.NotFound:
-            message = None
-
-        if message is None:
-            extension_controller.remove(id)
 
 
 async def simple_poll(bot, guild: discord.Guild, channel: discord.TextChannel, p: poll.Poll):
@@ -38,45 +26,21 @@ async def title_poll(bot, guild: discord.Guild, channel: discord.TextChannel, p:
 
 
 async def create_poll(bot, guild: discord.Guild, channel: discord.TextChannel, _poll: poll.Poll):
-    role_controller = bot.get_role_controller(guild)
-    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
-
     content = format_poll(guild, _poll)
-
-    # sending messages
     msg: discord.Message = await bot.responses.send(channel=channel, make_embed=False, content=content, reactions=_poll.emojis)
     _poll.message_id = msg.id
 
-    extension_controller.update(_poll.jsonify())
-    extension_controller.flush()
 
-async def modify_poll(bot, guild: discord.Guild, channel: discord.TextChannel, reference: discord.MessageReference,
+async def modify_poll(bot, guild: discord.Guild, ctx: discord.ext.commands.Context, reference: discord.MessageReference,
                       _poll: poll.Poll):
-    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
     content = format_poll(guild, _poll)
 
-    # message = channel.fetch_message(reference.message_id)
-    # todo how to getch the message correctly
-    message: discord.Message = await bot.fetch_message(reference.message_id)
+    message = await ctx.fetch_message(reference.message_id)
     await message.edit(content=content)
-    # todo edit reactions
 
-    extension_controller.update(_poll.jsonify())
-    extension_controller.flush()
+    for reaction in _poll.emojis:
+        await message.add_reaction(reaction)
 
-
-def get_poll_by_id(bot, guild: discord.Guild, message_id: int):
-    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
-
-    p = None
-    for _id, data in extension_controller.get_all().items():
-        if data[0] == message_id:
-            return poll.Poll.from_dict({_id:data})
-
-def remove_poll(bot, guild: discord.Guild, _poll: poll.Poll):
-    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
-    extension_controller.remove(_poll.id)
-    extension_controller.flush()
 
 def format_poll(guild: discord.Guild, _poll: poll.Poll) -> str:
     content = "{prefix}{{title}}**\n\n{{poll}}".format(prefix=RP_PREFIX)
@@ -90,34 +54,52 @@ def format_poll(guild: discord.Guild, _poll: poll.Poll) -> str:
     return content.format(title=_poll.title, poll=p)
 
 
-async def handle_reaction(bot, guild: discord.Guild, channel: discord.TextChannel, message_id, member: discord.Member,
-                          emoji) -> discord.Role:
-    extension_controller = bot.get_extension_config_handler(guild, config.EXTENSION_NAME)
+def poll_from_reference(reference: discord.MessageReference = None, message: discord.Message = None) -> poll.Poll:
+    content = reference.resolved.content if reference is not None else message.content
+    role_mentions = reference.resolved.role_mentions if reference is not None else message.role_mentions
 
-    for _id, _poll in extension_controller.data.items():
-        _message_id = _poll[0]
-        _channel_id = _poll[1]
+    title = content.split(RP_PREFIX)[1].split("**")[0]
 
-        if message_id == _message_id and channel.id == _channel_id:
-            for _role in _poll[3:]:
-                if emoji == _role[0]:
-                    return guild.get_role(_role[2])
+    content = content.split("\n", 2)[2]
+    roles: List[int] = [i.id for i in role_mentions]
+
+    emojis = []
+    description = []
+
+    for line in content.split("\n"):
+        e, d = line.split(" - ")
+        d = d.rsplit(":", 1)[1]
+
+        emojis.append(e)
+        description.append(d)
+
+    options = []
+    for i in range(len(roles)):
+        options.append([emojis[i], description[i], roles[i]])
+
+    return poll.Poll(title, options)
 
 
-async def add_reaction(bot, guild: discord.Guild, channel: discord.TextChannel, message_id, member: discord.Member,
-                          emoji):
+async def handle_reaction_message(message: discord.Message, emoji) -> discord.Role:
+    _poll = poll_from_reference(message=message)
+    return _poll.get_role_by_emoji(emoji)
+
+
+async def add_reaction(guild: discord.Guild, message: discord.Message, member: discord.Member, emoji):
     if member.bot:
         return
 
-    role = await handle_reaction(bot, guild, channel, message_id, member, emoji)
-
+    role_id = await handle_reaction_message(message, emoji)
+    role = get(guild.roles, id=role_id)
     await member.add_roles(role)
 
 
-async def remove_reaction(bot, guild: discord.Guild, channel: discord.TextChannel, message_id, member: discord.Member,
-                          emoji):
-    role = await handle_reaction(bot, guild, channel, message_id, member, emoji)
+async def remove_reaction(guild: discord.Guild, message: discord.Message, member: discord.Member, emoji):
+    if member.bot:
+        return
 
+    role_id = await handle_reaction_message(message, emoji)
+    role = get(guild.roles, id=role_id)
     await member.remove_roles(role)
 
 

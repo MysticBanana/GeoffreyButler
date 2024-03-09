@@ -8,6 +8,8 @@ from core.permissions.decorators import *
 
 
 from core.permissions import conf
+from data import db
+from data import db_utils
 
 
 class Permissions(commands.Cog):
@@ -35,9 +37,11 @@ class Permissions(commands.Cog):
             return
 
         permission = models.Permission(role_ids=[role.id for role in roles], level=level)
-        guild = self.bot.guilds.get(ctx.guild.id)
-        guild.add_permission(permission)
-        guild.flush()
+        guild = await db_utils.fetch_guild(guild_id=ctx.guild.id)
+        permissions = models.Permissions.from_dict(guild.permissions)
+        permissions.add_permission(permission)
+
+        await db_utils.insert_guild(guild_id=ctx.guild.id, permissions=permissions.jsonify())
 
     @commands.command(name="test_permission", description="Sets a role to a specific permission level")
     @commands.cooldown(1, 2)
