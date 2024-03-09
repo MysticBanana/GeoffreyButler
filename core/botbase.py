@@ -10,6 +10,8 @@ import importlib.machinery
 from . import messages, audio, roles, permissions
 import inspect
 
+import discord.utils
+
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -23,33 +25,12 @@ from data import db_utils
 class BotBase(commands.Bot):
     ROOT: Path = ""
     VERSION: str = "1.0"
-
-    GUILDS: Dict[int, Guild] = {}
     PLUGINS: List[str] = []
 
     conf = "conf.ini"
 
     responses: messages.MessageController
     audio_controller: Dict[discord.Guild, audio.Controller] = {}
-
-    class GuildMapper:
-        client: "BotBase"
-
-        def __getattr__(self, item) -> Guild:
-            return self.client.guilds.get(int(item))
-
-    @property
-    def guild(self) -> GuildMapper:
-        """ Uses dot notation to access guild data"""
-        return self.GuildMapper()
-
-    @property
-    def guilds(self) -> Dict[int, Guild]:
-        return BotBase.GUILDS
-
-    @guilds.setter
-    def guilds(self, value):
-        BotBase.GUILDS = value
 
     @property
     def project_root(self) -> Path:
@@ -60,10 +41,7 @@ class BotBase(commands.Bot):
         BotBase.ROOT = value
 
     def __init__(self, command_prefix: str = "?", *args, **kwargs):
-
         intents = discord.Intents.all()
-        self.GuildMapper.client = self
-
         super().__init__(command_prefix, intents=intents, *args, **kwargs)
 
         self.project_root = kwargs.get("root_dir", Path(__file__).parent)
@@ -79,13 +57,11 @@ class BotBase(commands.Bot):
         self.VERSION = self.config.getfloat("DEFAULT", "version", fallback=self.VERSION)
         self.plugin_path: Path = Path(self.project_root.joinpath(self.config.get("FILES", "plugins")))
 
-        self.logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode).get_logger("Main")
+        self._logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode)
+        self.logger = self._logger.get_logger("Main")
         self.logger.info("Loaded basic setup")
 
         db_utils.bot = self
-
-        # todo remove
-        self.load_guilds_from_config()
 
         self.logger.info("loading message controller")
         self.responses = messages.MessageController(self)
@@ -94,35 +70,7 @@ class BotBase(commands.Bot):
         for owner_id in self.config.get("DISCORD", "owners").split(","):
             self.owner_ids.add(owner_id.strip())
 
-        # self.logger.info("Loading Database")
-        # engine = sqlalchemy.create_engine('sqlite:///sqlite.db')
-        # self.session = sessionmaker(bind=engine, class_=AsyncSession)
-        #
-        # db.Base.metadata.create_all(engine)
-
         self.logger.info("Done init")
-
-
-    def load_guilds_from_config(self):
-        """
-        Called on start to load all guilds from saved config files
-        """
-
-        (self.project_root / "json").mkdir(parents=True, exist_ok=True)
-
-        for file in (self.project_root / "json").iterdir():
-            guild_id: int
-            try:
-                guild_id = int(file.stem)
-
-            except:
-                continue
-
-            self.load_guild(Guild.from_guild_id(self, guild_id))
-
-    def flush(self):
-        for guild_data in self.GUILDS.values():
-            guild_data.flush()
 
     def get_audio_controller(self, guild: discord.Guild) -> audio.Controller:
         """Returns an audio controller object for a guild"""
@@ -135,15 +83,6 @@ class BotBase(commands.Bot):
         self.audio_controller[guild] = controller
 
         return controller
-
-    def get_role_controller(self, guild: discord.Guild) -> roles.RoleController:
-        self.logger.info("loading role controller")
-        role_controller = roles.RoleController(self, guild)
-
-        return role_controller
-
-    def get_extension_config_handler(self, guild: discord.Guild, extension_name: str):
-        return self.guilds.get(guild.id).register_extension_config_handler(extension_name)
 
     async def load_plugins(self):
         self.logger.info("Loading Plugins")
@@ -184,25 +123,6 @@ class BotBase(commands.Bot):
         await self.unload_plugin(name)
         await self.load_plugin(self.plugin_path, name)
 
-    def register_guild(self, guild: discord.Guild):
-        """
-        Methode to call when the bot joins or is restarting
-         - adding the guild to config if new
-         - adding the guild to `GUILDS`
-        """
-
-        if guild is None:
-            return
-
-        raise
-
-        _guild = Guild.from_guild(self, guild)
-        self.load_guild(_guild)
-
-    def load_guild(self, guild: Guild):
-        self.guilds[guild.guild_id] = guild
-        guild.flush()
-
     async def is_guild_registered(self, guild_id: int) -> bool:
         if await db_utils.fetch_guild(guild_id):
             return True
@@ -229,4 +149,7 @@ class BotBase(commands.Bot):
                 pass
 
     def run(self, **kwargs):
-        super().run(self.token, **kwargs)
+        super().run(self.token,
+                    log_handler=self._logger.file_handler,
+                    log_formatter=self._logger.formatter,
+                    reconnect=True, **kwargs)

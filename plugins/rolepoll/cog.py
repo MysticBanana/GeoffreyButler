@@ -8,7 +8,6 @@ from discord.ext import commands
 import helper as _helper
 from core import botbase
 from core import helper
-from . import config
 from . import pollcontroller
 from .models import poll
 
@@ -98,8 +97,6 @@ class PollCog(commands.Cog, name="Poll"):
         :param channel: Channel to send the finished poll
         """
 
-        role_controller = self.bot.get_role_controller(ctx.guild)
-
         _poll: List[List[str, str, int]] = []
 
         req = "Insert the title of your poll"
@@ -132,7 +129,6 @@ class PollCog(commands.Cog, name="Poll"):
 
         await pollcontroller.create_poll(self.bot, ctx.guild, channel or ctx.channel, p)
         await ctx.message.delete()
-
 
     @commands.cooldown(3, 10)
     @commands.command(name="rp_modify", help="modify already posted role poll")
@@ -191,7 +187,6 @@ class PollCog(commands.Cog, name="Poll"):
 
         await pollcontroller.modify_poll(self.bot, ctx.guild, ctx, reference, p)
         await ctx.message.delete()
-
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
