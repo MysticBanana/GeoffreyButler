@@ -70,4 +70,11 @@ class Permissions(base.BaseObject):
 
     @staticmethod
     def from_dict(data: List[Any]) -> "Permissions":
-        return Permissions(**data)
+        kwargs = {}
+        for level, roles in data.items():
+            kwargs.update({
+                level: {"role_ids": roles,
+                        "level": int(level)}
+            })
+
+        return Permissions(**kwargs)

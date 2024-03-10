@@ -9,6 +9,7 @@ import importlib.util
 import importlib.machinery
 from . import messages, audio, roles, permissions
 import inspect
+import traceback
 
 import discord.utils
 
@@ -20,6 +21,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from data import db
 from data import db_utils
+
+
+Bot: "BotBase" = None
 
 
 class BotBase(commands.Bot):
@@ -71,6 +75,9 @@ class BotBase(commands.Bot):
             self.owner_ids.add(owner_id.strip())
 
         self.logger.info("Done init")
+
+        global Bot
+        Bot = self
 
     def get_audio_controller(self, guild: discord.Guild) -> audio.Controller:
         """Returns an audio controller object for a guild"""
@@ -132,21 +139,18 @@ class BotBase(commands.Bot):
         if context.message:
             await context.message.delete()
 
-        self.logger.warning(exception)
+        tb = "".join(traceback.format_exception(type(exception), exception, exception.__traceback__))
+        message = f"An error occurred while processing the interaction for {str(context.message)}:\n```py\n{tb}\n```"
+        self.logger.warning(message)
 
         # Cooldown on command triggered
         if type(exception) == commands.CommandOnCooldown:
             return
 
         if type(exception) == commands.CommandInvokeError:
-            print("i messed up sorry")
+            self.logger.error("Error occurred")
 
-    async def setup_hook(self) -> None:
-        for name, view in inspect.getmembers(messages.views):
-            try:
-                self.add_view(view)
-            except TypeError:
-                pass
+
 
     def run(self, **kwargs):
         super().run(self.token,
