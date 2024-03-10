@@ -10,7 +10,7 @@ from data import db, db_utils
 from discord.ext.commands import Context
 
 
-class General(commands.Cog):
+class General(commands.Cog, name="General"):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
 

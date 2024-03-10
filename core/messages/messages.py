@@ -4,6 +4,8 @@ from . import colors, embeds, message_config, exceptions
 import discord
 from discord.ui import Button, View
 
+controller: "MessageController" = None
+
 
 class MessageController:
 
