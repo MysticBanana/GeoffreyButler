@@ -14,6 +14,7 @@ from discord import app_commands
 from discord import ui
 from core.messages import embeds
 import emoji
+from typing import Union
 
 
 from core.permissions import conf
@@ -22,8 +23,8 @@ from data import db_utils
 
 
 class RoleSelect(ui.RoleSelect):
-    interaction: discord.Interaction | None = None
-    message: discord.Message | None = None
+    interaction: discord.Interaction = None
+    message: discord.Message = None
 
     def __init__(self, bot, guild: discord.Guild, *args, **kwargs):
         self.bot = bot
@@ -45,8 +46,8 @@ class RoleSelect(ui.RoleSelect):
 
 
 class PermissionSelect(ui.Select):
-    interaction: discord.Interaction | None = None
-    message: discord.Message | None = None
+    interaction: discord.Interaction = None
+    message: discord.Message = None
 
     def __init__(self, bot, guild: discord.Guild, *args, **kwargs):
         self.bot = bot
@@ -77,13 +78,13 @@ class PermissionSelect(ui.Select):
 
 
 class SetupView(ui.View):
-    interaction: discord.Interaction | None = None
-    message: discord.Message | None = None
+    interaction: discord.Interaction = None
+    message: discord.Message = None
 
     roles: List[discord.Role] = []
     permission: conf.PermissionType = None
 
-    def __init__(self, bot, user: discord.User | discord.Member, guild: discord.Guild, timeout: float = 60.0) -> None:
+    def __init__(self, bot, user: Union[discord.User, discord.Member], guild: discord.Guild, timeout: float = 60.0) -> None:
         super().__init__(timeout=timeout)
         self.bot = bot
         self.user = user

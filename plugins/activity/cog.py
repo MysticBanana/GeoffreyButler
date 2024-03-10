@@ -19,6 +19,7 @@ from . import progressbar
 from core.permissions.decorators import has_custom_permission
 from core.permissions import conf
 import math
+from typing import Union
 
 
 # extension_structure = {
@@ -59,10 +60,10 @@ class ChannelSelect(ui.ChannelSelect):
 
 
 class SetupView(ui.View):
-    interaction: discord.Interaction | None = None
-    message: discord.Message | None = None
+    interaction: discord.Interaction = None
+    message: discord.Message = None
 
-    def __init__(self, bot: BotBase, user: discord.User | discord.Member, guild: discord.Guild, timeout: float = 60.0) -> None:
+    def __init__(self, bot: BotBase, user: Union[discord.User, discord.Member], guild: discord.Guild, timeout: float = 60.0) -> None:
         super().__init__(timeout=timeout)
         self.bot = bot
         self.user = user
