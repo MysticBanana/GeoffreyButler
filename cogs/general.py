@@ -132,6 +132,12 @@ class General(commands.Cog):
         print(data.discord_id)
         await ctx.message.delete()
 
+    @commands.command(name="sync", description="Admin only - syncs commands")
+    @commands.has_permissions(administrator=True)
+    async def test(self, ctx: Context):
+        self.bot.logger.warning("Syncing slash commands")
+        await self.bot.tree.sync(guild=ctx.guild)
+
     @commands.command(name="register", description="register")
     @commands.has_permissions(administrator=True)
     async def register(self, ctx: Context):

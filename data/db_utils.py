@@ -108,7 +108,6 @@ async def fetch_global_user(user_id: int) -> db.User:
         user = await session.get(db.User, user_id)
         return user
 
-# todo if user not exists create
 async def fetch_user(guild_id: int, user_id: int) -> db.UserServer:
     async with bot.db_session as session:
         # user = await session.get(db.UserServer, {"discord_id": user_id,

@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 from  sqlalchemy.dialects.sqlite import aiosqlite
 from data import db
+from discord import app_commands
 
 
 class Geoffrey(botbase.BotBase):
@@ -39,6 +40,8 @@ class Geoffrey(botbase.BotBase):
                                        ending_note=f"Type {self.command_prefix}help command for more info on a command."
                                                    f"\nDiscord bot by MysticBanana",
                                        )
+
+        # self._tree = app_commands.CommandTree(self)
 
     @property
     def db_session(self) -> AsyncSession:

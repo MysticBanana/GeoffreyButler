@@ -13,12 +13,6 @@ import traceback
 
 import discord.utils
 
-import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine
-
 from data import db
 from data import db_utils
 
@@ -149,8 +143,6 @@ class BotBase(commands.Bot):
 
         if type(exception) == commands.CommandInvokeError:
             self.logger.error("Error occurred")
-
-
 
     def run(self, **kwargs):
         super().run(self.token,

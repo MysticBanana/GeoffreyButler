@@ -14,9 +14,11 @@ from discord import ui
 import typing
 
 from core.messages import embeds
+from . import progressbar
 
 from core.permissions.decorators import has_custom_permission
 from core.permissions import conf
+import math
 
 
 # extension_structure = {
@@ -126,10 +128,20 @@ class ActivityCog(commands.Cog, name="activities"):
                                                       "type in the first letters and it will appear*"
                                       ))
 
-    @commands.command(name="status", description="Shows the user status")
+    @commands.hybrid_command(name="status", description="Shows the user status")
     async def status(self, ctx: Context):
 
-        print("sample-ext")
+        user = await db_utils.fetch_user(ctx.guild.id, ctx.author.id)
+
+        max_xp = 400
+        await self.bot.responses.send(channel=ctx.channel,
+                                      embed=embeds.build_embed(
+                                          author=ctx.author,
+                                          title="Activity Status",
+                                          description=f"**Level: {int(math.floor(user.xp)/max_xp) + 1}**\n"
+                                                      f"**XP: {user.xp}**\n"
+                                                      f"```{progressbar.Bar(max_xp, user.xp % max_xp, 20).get_bar()}```"
+                                      ))
 
     @tasks.loop(minutes=5)
     async def check_user_in_voice(self) -> NoReturn:
