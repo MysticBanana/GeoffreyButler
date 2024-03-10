@@ -8,12 +8,12 @@ from discord.ext import commands
 import helper as _helper
 from core import botbase
 from core import helper
-from . import config
 from . import pollcontroller
 from .models import poll
 
 from core.permissions.decorators import has_custom_permission
 from core.permissions import conf
+
 
 class PollCog(commands.Cog, name="Poll"):
     def __init__(self, bot: botbase.BotBase):
@@ -25,7 +25,7 @@ class PollCog(commands.Cog, name="Poll"):
                                                                                   "interactive menu. The user can "
                                                                                   "choose his own emojis or use "
                                                                                   "default (1-10).")
-    async def create_simple_poll(self, ctx, channel: discord.TextChannel = None):
+    async def poll(self, ctx, channel: discord.TextChannel = None):
         """
         Creates a customizable poll with an interactive menu. The user can choose his own emojis or use default (1-10).
 
@@ -39,7 +39,7 @@ class PollCog(commands.Cog, name="Poll"):
         req = "How many options should be in the poll"
         options = await helper.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Do you want to assign special emoji for each role? (max 10 roles)"
+        req = "Do you want to assign special emoji for each role? (max 10 roles) (yes/no)"
         assign_emoji = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
         p = []
@@ -88,7 +88,7 @@ class PollCog(commands.Cog, name="Poll"):
                                                                                  "choose his own emojis or use "
                                                                                  "default (1-10).")
     @has_custom_permission(name=conf.PermissionType.MODERATOR)
-    async def create_poll(self, ctx, channel: discord.TextChannel = None):
+    async def role_poll(self, ctx, channel: discord.TextChannel = None):
         """
         Creates a customizable role poll with an interactive menu. The user can choose his own emojis or use
         default (1-10).
@@ -96,9 +96,6 @@ class PollCog(commands.Cog, name="Poll"):
         :param ctx: Context
         :param channel: Channel to send the finished poll
         """
-
-        role_controller = self.bot.get_role_controller(ctx.guild)
-        extension_controller = self.bot.get_extension_config_handler(ctx.guild, config.EXTENSION_NAME)
 
         _poll: List[List[str, str, int]] = []
 
@@ -108,11 +105,71 @@ class PollCog(commands.Cog, name="Poll"):
         req = "Insert all available roles"
         roles = await helper.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
 
-        req = "Do you want to assign special emoji for each role? (max 10 roles)"
+        req = "Do you want to assign special emoji for each role? (max 10 roles) (yes/no)"
         assign_emoji = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
         for num, role in enumerate(roles):
-            req = f"Insert the displayed name '{role.name}' (insert '-' for none)"
+            req = f"Insert the displayed name '{role.name}'"
+            displayed = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+
+            if assign_emoji:
+                req = f"Insert the displayed emoji '{role.name}'"
+                emoji = await helper.interactive_menu.request_emoji(self.bot, ctx.channel, ctx.author, req)
+            else:
+                # to many roles
+                if num > 9:
+                    await self.bot.responses.send(channel=ctx.channel, content="With default emojis you can only assign"
+                                                                               "10 roles")
+                    return
+                emoji = discord_emoji.emojize(f":keycap_{num+1}:")
+
+            _poll.append([emoji, displayed, role.id])
+
+        p = poll.Poll(title=title, poll=_poll)
+
+        await pollcontroller.create_poll(self.bot, ctx.guild, channel or ctx.channel, p)
+        await ctx.message.delete()
+
+    @commands.cooldown(3, 10)
+    @commands.command(name="rp_modify", help="modify already posted role poll")
+    @has_custom_permission(name=conf.PermissionType.MODERATOR)
+    async def modify_poll(self, ctx: discord.ext.commands.Context):
+        # todo create view where every part can be changed easy
+
+        reference = ctx.message.reference
+
+        if reference is None:
+            await self.bot.responses.send(channel=ctx.channel, content="You need to reference the poll you want to "
+                                                                       "edit (respond on it)")
+            return
+
+        p = pollcontroller.poll_from_reference(reference)
+
+        req = f"Insert the title of your poll (old: {p.title})"
+        title = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
+        if title is not None:
+            p.title = title
+
+        req = "Insert all available roles"
+        roles = await helper.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
+        if len(roles) == 0:
+            roles = [ctx.guild.get_role(i[2]) for i in p.param]
+
+            req = "Do you want to edit role specific information (yes/no)"
+            edit_roles = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+
+            # just title has been set
+            if not edit_roles:
+                await pollcontroller.modify_poll(self.bot, ctx.guild, ctx, reference, p)
+                await ctx.message.delete()
+                return
+
+        req = "Do you want to assign special emoji for each role? (max 10 roles) (yes/no)"
+        assign_emoji = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+
+        _poll: List[List[str, str, int]] = []
+        for num, role in enumerate(roles):
+            req = f"Insert the displayed name '{role.name}'"
             displayed = await helper.interactive_menu.request_string(self.bot, ctx.channel, ctx.author, req)
 
             if assign_emoji:
@@ -126,9 +183,9 @@ class PollCog(commands.Cog, name="Poll"):
 
             _poll.append([emoji, displayed, role.id])
 
-        p = poll.Poll(message_id=0, channel_id=ctx.channel.id, title=title, poll=_poll)
+        p.param = _poll
 
-        await pollcontroller.create_poll(self.bot, ctx.guild, channel or ctx.channel, p)
+        await pollcontroller.modify_poll(self.bot, ctx.guild, ctx, reference, p)
         await ctx.message.delete()
 
     @commands.Cog.listener()
@@ -145,7 +202,7 @@ class PollCog(commands.Cog, name="Poll"):
 
         if message.content.startswith(pollcontroller.RP_PREFIX):
             self.logger.info(f"adding role to user {member.name} - user_id:{member.id}")
-            await pollcontroller.add_reaction(self.bot, guild, channel, message_id, member, emoji)
+            await pollcontroller.add_reaction(guild, message, member, emoji)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -161,7 +218,7 @@ class PollCog(commands.Cog, name="Poll"):
 
         if message.content.startswith(pollcontroller.RP_PREFIX):
             self.logger.info(f"removing role from user {member.name} - user_id:{member.id}")
-            await pollcontroller.remove_reaction(self.bot, guild, channel, message_id, member, emoji)
+            await pollcontroller.remove_reaction(guild, message, member, emoji)
 
 
 async def setup(bot):

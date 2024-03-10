@@ -14,7 +14,7 @@ class Permission(base.BaseObject):
     role_ids: Set[int] = []
     level: int = 0
 
-    def __init__(self, role_id: int = None, role_ids: Union[Set[int], List[int]] = None, level: int = 0, *args, **kwargs):
+    def __init__(self, role_id: int = None, role_ids: Set[int] | List[int] = None, level: int = 0, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if role_id is not None:
@@ -25,10 +25,7 @@ class Permission(base.BaseObject):
         self.level = level
 
     def jsonify(self):
-        return {
-            "role_ids": list(self.role_ids),
-            "level": self.level
-        }
+        return list(self.role_ids)
 
     @staticmethod
     def from_dict(**data: dict) -> "Permission":
@@ -73,4 +70,11 @@ class Permissions(base.BaseObject):
 
     @staticmethod
     def from_dict(data: List[Any]) -> "Permissions":
-        return Permissions(**data)
+        kwargs = {}
+        for level, roles in data.items():
+            kwargs.update({
+                level: {"role_ids": roles,
+                        "level": int(level)}
+            })
+
+        return Permissions(**kwargs)

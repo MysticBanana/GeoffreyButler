@@ -10,8 +10,8 @@ Simple extendable Discord bot using the Discord.py (v2.0) library.
  * global audio controller to access from multiple plugins at the same time
  
 # Plugins
- * Musicbot (works but some features are missing)
- * basic role poll (editing and other features coming soon)
+ * Musicbot (outdated)
+ * Customizable Polls (role poll)
 
 # How to use
 All configs are made in the `conf.ini`. To customize them create a `conf.ini.local` and specify all

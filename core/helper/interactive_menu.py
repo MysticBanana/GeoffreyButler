@@ -81,7 +81,7 @@ def request_decorate(func):
         bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
         msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                timeout=40.0)
+                                timeout=65.0)
 
         if msg.content == ignore_character:
             return None
@@ -121,7 +121,7 @@ async def request_emoji(bot, channel, user: discord.Member, content, counter: in
     bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                                  timeout=40.0)
+                                  timeout=65.0)
     content = msg.content
     await bot_msg.delete()
     await msg.delete()
@@ -142,22 +142,25 @@ def request_bool(content) -> bool:
 
 
 async def request_roles(bot, channel, user: discord.Member, content, counter: int = 0) -> List[discord.Role]:
-    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
+    bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=f"{content}\n*Type"
+                                                                                  f" <cancel> to cancel the request*")
 
     if counter > 3:
         await bot.responses.send(channel=channel, make_embed=False, content="Maximum tries")
         return []
 
     msg = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                             timeout=40.0)
-
+                             timeout=65.0)
     content = msg.content
+
+    if content == "cancel":
+        return []
+
     roles = msg.role_mentions
     await bot_msg.delete()
     await msg.delete()
 
     if len(roles) == 0:
-        # retry
         return await request_roles(bot, channel, user, content, counter + 1)
 
     return roles
@@ -171,7 +174,7 @@ async def request_channel(bot, channel, user: discord.Member, content, counter: 
     bot_msg = await bot.responses.send(channel=channel, make_embed=False, content=content)
 
     msg: discord.Message = await bot.wait_for("message", check=lambda m: (m.author == user and m.channel == channel),
-                             timeout=40.0)
+                             timeout=65.0)
 
     content = msg.content
     channels = msg.channel_mentions

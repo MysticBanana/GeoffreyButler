@@ -2,6 +2,7 @@ import os
 from . import file_handler
 from pathlib import Path
 import helper
+from helper import Logger, logger
 from typing import Dict, Any
 
 
@@ -19,7 +20,7 @@ class ConfigHandler:
         self.path: Path = bot.project_root / "json" / str(guild.guild_id)
         self.path.mkdir(parents=True, exist_ok=True)
 
-        self.logger = helper.Logger().get_logger(self.__class__.__name__)
+        self.logger = self.bot._logger.get_logger(self.__class__.__name__)
 
         if (self.path / self.server_config_name).is_file():
             self._exists = True
@@ -70,6 +71,9 @@ class ExtensionConfigHandler:
 
     def get(self, name: str, *args) -> dict:
         return self.data.get(name, *args)
+
+    def get_all(self) -> dict:
+        return self.data
 
     def remove(self, key: Any) -> None:
         self.data.pop(key)

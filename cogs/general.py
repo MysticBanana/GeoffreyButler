@@ -6,9 +6,11 @@ from core import botbase
 from core import helper
 from typing import Optional, Tuple, Union, Dict, List
 from core import messages
+from data import db, db_utils
+from discord.ext.commands import Context
 
 
-class General(commands.Cog):
+class General(commands.Cog, name="General"):
     def __init__(self, bot: botbase.BotBase):
         self.bot: botbase.BotBase = bot
 
@@ -115,6 +117,31 @@ class General(commands.Cog):
         )
 
         await message.edit(embed=embed)
+        await ctx.message.delete()
+
+    @commands.command(name="test1", description="test")
+    @commands.has_permissions(administrator=True)
+    async def test(self, ctx: Context):
+
+        # await db_utils.register_guild(ctx.guild)
+        # data: db.Server = await db_utils.fetch_guild(ctx.guild.id)
+        # print(data.server_name)
+        #
+        # data: List[db.Server] = await db_utils.fetch_guilds()
+        data: db.UserServer = await db_utils.fetch_user(ctx.guild.id, ctx.author.id)
+        print(data.discord_id)
+        await ctx.message.delete()
+
+    @commands.command(name="sync", description="Admin only - syncs commands")
+    @commands.has_permissions(administrator=True)
+    async def test(self, ctx: Context):
+        self.bot.logger.warning("Syncing slash commands")
+        await self.bot.tree.sync(guild=ctx.guild)
+
+    @commands.command(name="register", description="register")
+    @commands.has_permissions(administrator=True)
+    async def register(self, ctx: Context):
+        await db_utils.register_guild(ctx.guild)
         await ctx.message.delete()
 
 
