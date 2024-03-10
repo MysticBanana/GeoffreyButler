@@ -32,8 +32,6 @@ class Logger:
         self.error_handler.setFormatter(self.formatter)
         self.error_handler.setLevel(logging.ERROR)
 
-        self.logger = self.get_logger("Main")
-
         log = self
 
     @property

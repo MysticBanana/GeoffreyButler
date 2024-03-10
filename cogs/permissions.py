@@ -14,7 +14,7 @@ from discord import app_commands
 from discord import ui
 from core.messages import embeds
 import emoji
-from typing import Union
+from typing import Union, Any
 
 
 from core.permissions import conf
@@ -37,7 +37,7 @@ class RoleSelect(ui.RoleSelect):
             **kwargs
         )
 
-    async def callback(self, interaction: discord.Interaction[ClientT]) -> ...:
+    async def callback(self, interaction: discord.Interaction[ClientT]) -> Any:
         self.view.roles = [interaction.guild.get_role(int(i)) for i in interaction.data.get("values", 0)]
         self.view.remove_item(self)
         self.view.add_item(self.view.permission_select)
@@ -70,7 +70,7 @@ class PermissionSelect(ui.Select):
             **kwargs
         )
 
-    async def callback(self, interaction: discord.Interaction[ClientT]) -> ...:
+    async def callback(self, interaction: discord.Interaction[ClientT]) -> Any:
         # await interaction.response.defer()
         self.view.permission = conf.PermissionType[interaction.data.get("values")[0]]
         await self.view.save_selection()
@@ -124,7 +124,7 @@ class SetupView(ui.View):
 
     async def on_error(
             self, interaction: discord.Interaction[discord.Client], error: Exception,
-            item: discord.ui.Item[...]
+            item: discord.ui.Item[Any]
     ) -> None:
         message = f"An error occurred while processing the interaction for [RolePermissionSetupView]:\n```py\n{error}\n```"
         self.bot._logger.get_logger("Activity").warning(message)

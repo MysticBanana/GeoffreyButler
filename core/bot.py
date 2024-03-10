@@ -14,7 +14,7 @@ from typing import Tuple, List, Union, Callable
 import inspect
 from core import botbase
 from . import messages
-from pretty_help import PrettyHelp
+# from pretty_help import PrettyHelp
 from core.messages import message_config
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,11 +35,11 @@ class Geoffrey(botbase.BotBase):
 
         self.color_theme = message_config.ThemeBlue
         Geoffrey.instance = self
-        self.help_command = PrettyHelp(color=message_config.get_color(self.color_theme.DARK.value),
-                                       delete_invoke=True,
-                                       ending_note=f"Type {self.command_prefix}help command for more info on a command."
-                                                   f"\nDiscord bot by MysticBanana",
-                                       )
+        # self.help_command = PrettyHelp(color=message_config.get_color(self.color_theme.DARK.value),
+        #                                delete_invoke=True,
+        #                                ending_note=f"Type {self.command_prefix}help command for more info on a command."
+        #                                            f"\nDiscord bot by MysticBanana",
+        #                                )
 
         # self._tree = app_commands.CommandTree(self)
 

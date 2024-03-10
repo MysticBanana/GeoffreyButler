@@ -39,7 +39,13 @@ class Logger:
         self.error_handler.setFormatter(self.formatter)
         self.error_handler.setLevel(logging.ERROR)
 
-        self.logger = self.get_logger("Main")
+    @property
+    def file_handler(self):
+        return self.time_handler
+
+    @property
+    def steam_handler(self):
+        return self.steam_handler
 
     def get_logger(self, name):
         log = logging.getLogger(name)
