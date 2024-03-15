@@ -64,9 +64,9 @@ class Geoffrey(botbase.BotBase):
             # echo=True,
         )
 
-        # async with engine.begin() as conn:
+        async with engine.begin() as conn:
         #     await conn.run_sync(db.Base.metadata.drop_all)
-        #     await conn.run_sync(db.Base.metadata.create_all)
+            await conn.run_sync(db.Base.metadata.create_all)
 
         # expire_on_commit=False will prevent attributes from being expired
         # after commit.

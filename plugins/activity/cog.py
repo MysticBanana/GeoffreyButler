@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from discord.ext.commands import Context
 from typing import NoReturn
 from discord import app_commands
+import traceback
 
 from .config import ACTIVITY_XP, EXTENSION_NAME
 
@@ -21,12 +22,6 @@ from core.permissions import conf
 import math
 from typing import Union
 
-
-# extension_structure = {
-#     "channel_listened": [...],
-#     "voice_counts": 0,
-#     "attachments": 0
-# }
 
 class ChannelSelect(ui.ChannelSelect):
     def __init__(self, bot: BotBase, guild: discord.Guild, *args, **kwargs):
@@ -94,8 +89,8 @@ class SetupView(ui.View):
             self, interaction: discord.Interaction[discord.Client], error: Exception,
             item: discord.ui.Item[typing.Any]
     ) -> None:
-        # tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-        message = f"An error occurred while processing the interaction for [ActivitySetupView]:\n```py\n{error}\n```"
+        tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+        message = f"An error occurred while processing the interaction for [ActivitySetupView]:\n```py\n{tb}\n```"
         Bot._logger.get_logger("Activity").warning(message)
         await interaction.response.send_message(message, ephemeral=True)
 
@@ -113,6 +108,11 @@ class ActivityCog(commands.Cog, name="activities"):
     @commands.hybrid_command(name="setup_activity", description="Menu to configure activities")
     @has_custom_permission(name=conf.PermissionType.ADMIN)
     async def setup(self, ctx: Context):
+        """
+        Sends a menu where the server owner can specify tracked channel
+
+        :param ctx: Discord context
+        """
         view = SetupView(self.bot, ctx.author, ctx.guild)
 
         await self.bot.responses.send(channel=ctx.channel,
@@ -130,9 +130,17 @@ class ActivityCog(commands.Cog, name="activities"):
                                       ))
 
     @commands.hybrid_command(name="status", description="Shows the user status")
-    async def status(self, ctx: Context):
+    async def status(self, ctx: Context, user: discord.Member = None) -> NoReturn:
+        """
+        Sends a message about user status (xp, level...)
 
-        user = await db_utils.fetch_user(ctx.guild.id, ctx.author.id)
+        :param ctx: Discord context
+        :param user: Use mention to check status
+        """
+        if user is not None:
+            user = await db_utils.fetch_user(ctx.guild.id, user.id)
+        else:
+            user = await db_utils.fetch_user(ctx.guild.id, ctx.author.id)
 
         max_xp = 400
         await self.bot.responses.send(channel=ctx.channel,
