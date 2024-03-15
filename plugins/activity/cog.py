@@ -191,8 +191,7 @@ class ActivityCog(commands.Cog, name="activities"):
             channel_ids = await db_utils.ServerExtension.fast_fetch(EXTENSION_NAME, message.guild.id, "tracked_channel")
 
             if message.channel.id in channel_ids:
-                # todo this might need to get cached to avoid alot traffic
-                await add_xp(message.guild.id, message.author.id, ACTIVITY_XP.attachment)
+                await add_xp(message.guild.id, message.author.id, ACTIVITY_XP.attachment * len(message.attachments))
 
 
 async def add_xp(guild_id: int, user_id: int, xp: int) -> NoReturn:
