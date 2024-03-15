@@ -16,7 +16,7 @@ def build_embed(**kwargs) -> discord.Embed:
 
     if author_img is None:
         if author != "":
-            author_img = author.avater_url
+            author_img = author.avatar.url
         else:
             author_img = None
 

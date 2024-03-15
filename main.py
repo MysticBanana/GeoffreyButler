@@ -2,6 +2,8 @@ from core import Geoffrey
 from pathlib import Path
 # from pretty_help import PrettyHelp
 
+from discord import app_commands
+
 
 # basic pre-running setup
 # not implemented yet

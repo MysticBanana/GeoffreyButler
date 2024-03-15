@@ -1,19 +1,11 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from logging import StreamHandler
 from pathlib import Path
+from logging import StreamHandler
 import sys
 
-logger: "Logger" = None
 
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+log: "Logger" = None
 
 
 class Logger:
@@ -28,7 +20,8 @@ class Logger:
         filename.parent.mkdir(exist_ok=True)
         filename.touch(exist_ok=True)
 
-        self.formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s] %(message)s')
+        dt_fmt = '%Y-%m-%d %H:%M:%S'
+        self.formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s] %(message)s', dt_fmt)
         self.time_handler = TimedRotatingFileHandler(filename, when="midnight", encoding="utf-8")
         self.time_handler.setFormatter(self.formatter)
 
@@ -39,13 +32,15 @@ class Logger:
         self.error_handler.setFormatter(self.formatter)
         self.error_handler.setLevel(logging.ERROR)
 
+        log = self
+
     @property
-    def file_handler(self):
+    def file_handler(self) -> TimedRotatingFileHandler:
         return self.time_handler
 
     @property
-    def steam_handler(self):
-        return self.steam_handler
+    def stream_handler(self) -> StreamHandler:
+        return self.console_handler
 
     def get_logger(self, name):
         log = logging.getLogger(name)
@@ -57,9 +52,16 @@ class Logger:
             log.addHandler(self.console_handler)
             log.addHandler(self.time_handler)
 
+            log.setLevel(logging.DEBUG)
+
         else:
             self.time_handler.setLevel(logging.WARNING)
             log.addHandler(self.error_handler)
             log.addHandler(self.time_handler)
 
+            log.setLevel(logging.INFO)
         return log
+
+
+if __name__ == "__main__":
+    l = Logger()

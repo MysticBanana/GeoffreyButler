@@ -20,7 +20,7 @@ class ConfigHandler:
         self.path: Path = bot.project_root / "json" / str(guild.guild_id)
         self.path.mkdir(parents=True, exist_ok=True)
 
-        self.logger = Logger().get_logger(self.__class__.__name__)
+        self.logger = self.bot._logger.get_logger(self.__class__.__name__)
 
         if (self.path / self.server_config_name).is_file():
             self._exists = True
