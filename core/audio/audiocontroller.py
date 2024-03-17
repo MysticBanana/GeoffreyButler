@@ -28,6 +28,10 @@ class Controller:
         self.playlist = models.Playlist()
 
     @property
+    def current_track(self) -> models.Track:
+        return self.playlist.current_track
+
+    @property
     def guilds(self) -> List[discord.Guild]:
         return Controller._guilds
 
@@ -61,6 +65,21 @@ class Controller:
             await bot.responses.send(channel=ctx.channel, make_embed=False, content="You arn't in a voice channel")
 
         audio_controller.voice_channel = ctx.author.voice.channel
+
+        return audio_controller
+
+    @staticmethod
+    async def controller_from_interaction(bot, interaction: discord.Interaction) -> "Controller":
+        audio_controller = bot.get_audio_controller(interaction.guild)
+
+        audio_controller.text_channel = interaction.channel
+
+        if not interaction.user.voice:
+            await bot.responses.send(channel=interaction.channel,
+                                     make_embed=False,
+                                     content="You arn't in a voice channel")
+
+        audio_controller.voice_channel = interaction.user.voice.channel
 
         return audio_controller
 
@@ -122,7 +141,7 @@ class Controller:
         await self.play_track(track)
 
         # sending a status message in chat (interface)
-        await track.send_interface(self.bot, self.default_text_channel)
+        # await track.send_interface(self.bot, self.default_text_channel)
 
     def on_next(self, event=None):
         """Gets called when a track ended"""

@@ -1,3 +1,5 @@
+import discord
+
 from . import models
 from core.audio import audiocontroller
 
@@ -11,7 +13,6 @@ async def play_command(controller: audiocontroller.Controller, url):
 
 async def queue_command(controller: audiocontroller.Controller, url):
     audio_controller = controller
-
     audio_controller.queue(track=models.Track(url=url))
 
 
@@ -36,21 +37,23 @@ async def prev_command(controller: audiocontroller.Controller):
 
 
 async def pause_command(controller: audiocontroller.Controller):
-    audio_controller = controller
     voice_client = controller.guild.voice_client
 
     if voice_client.is_playing():
         await voice_client.pause()
+    elif voice_client.is_paused():
+        await voice_client.resume()
     else:
-        await controller.text_channel.send("The bot is not playing anything at the moment.")
+        await controller.text_channel.send("There is no song in the playlist right now.")
 
 
 async def resume_command(controller: audiocontroller.Controller):
+    await pause_command(controller)
+
+
+async def stop_command(controller: audiocontroller.Controller):
     audio_controller = controller
     voice_client = controller.guild.voice_client
 
-    if voice_client.is_paused():
-        await voice_client.resume()
-    else:
-        await controller.text_channel.send("The bot was not playing anything before this. Use play_song command")
-
+    await audio_controller.stop_player()
+    print("TODO")

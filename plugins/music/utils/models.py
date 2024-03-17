@@ -5,7 +5,7 @@ from collections import deque, defaultdict
 from core.audio import models
 from . import util
 import discord
-import youtube_dl
+import yt_dlp as youtube_dl
 from core.messages import embeds
 
 
@@ -31,6 +31,8 @@ class Track(models.Track):
         duration: str
         webpage_url: str
         thumbnail: Any = None
+
+    info: SongInfo
 
     def __init__(self, *args, **kwargs):
         super(Track, self).__init__(*args, **kwargs)
