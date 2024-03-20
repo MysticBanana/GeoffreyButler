@@ -1,3 +1,4 @@
+import aiohttp
 import discord
 from discord.ext import tasks, commands
 from pathlib import Path
@@ -10,6 +11,8 @@ import importlib.machinery
 from . import messages, audio, roles, permissions
 import inspect
 import traceback
+import os
+from core.utils.context import Context
 
 import discord.utils
 
@@ -20,39 +23,38 @@ from data import db_utils
 Bot: "BotBase" = None
 
 
-class BotBase(commands.Bot):
-    ROOT: Path = ""
-    VERSION: str = "1.0"
-    PLUGINS: List[str] = []
+initial_extensions = (
+    "cogs.events",
+    "cogs.general",
+    "cogs.permissions",
+    "cogs.admin"
+)
 
+
+class BotBase(commands.Bot):
+    root: Path = ""
     conf = "conf.ini"
+    version = 1.0
 
     responses: messages.MessageController
     audio_controller: Dict[discord.Guild, audio.Controller] = {}
 
-    @property
-    def project_root(self) -> Path:
-        return BotBase.ROOT
-
-    @project_root.setter
-    def project_root(self, value):
-        BotBase.ROOT = value
+    bot_app_info: discord.AppInfo
 
     def __init__(self, command_prefix: str = "?", *args, **kwargs):
         intents = discord.Intents.all()
-        super().__init__(command_prefix, intents=intents, *args, **kwargs)
+        super().__init__(command_prefix=command_prefix, intents=intents, **kwargs)
 
         self.project_root = kwargs.get("root_dir", Path(__file__).parent)
 
         self.config = ConfigParser()
-
         self.config.read(self.project_root.joinpath(self.conf))
         self.config.read(self.project_root.joinpath(f"{self.conf}.local"))
 
         self.token = self.config.get("DEFAULT", "token")
         self.command_prefix = self.config.get("DEFAULT", "prefix", fallback="?")
         self.dev_mode = self.config.getboolean("DEFAULT", "dev_mode", fallback=False)
-        self.VERSION = self.config.getfloat("DEFAULT", "version", fallback=self.VERSION)
+        self.version = self.config.getfloat("DEFAULT", "version", fallback=self.version)
         self.plugin_path: Path = Path(self.project_root.joinpath(self.config.get("FILES", "plugins")))
 
         self._logger = helper.Logger(path=self.project_root.joinpath("logs"), dev_mode=self.dev_mode)
@@ -65,13 +67,45 @@ class BotBase(commands.Bot):
         self.responses = messages.MessageController(self)
 
         self.logger.info("Reading owners")
-        for owner_id in self.config.get("DISCORD", "owners").split(","):
-            self.owner_ids.add(owner_id.strip())
+        # for owner_id in self.config.get("DISCORD", "owners").split(","):
+        #     self.owner_ids.add(owner_id.strip())
 
         self.logger.info("Done init")
 
         global Bot
         Bot = self
+
+    async def setup_hook(self) -> None:
+        # self.session = aiohttp.ClientSession()
+
+        self.bot_app_info = await self.application_info()
+        self.owner_id = self.bot_app_info.owner.id
+
+        self.logger.info("Loading initial Cogs")
+        for extension in initial_extensions:
+            try:
+                await self.load_extension(extension)
+            except Exception as e:
+                self.logger.exception('Failed to load extension %s.', extension)
+
+        self.logger.info("Loading extensions")
+        extensions = [i.strip() for i in self.config.get("FILES", "extensions").split(",")]
+        for extension in extensions:
+            try:
+                await self.load_extension(f"{self.plugin_path.stem}.{extension}")
+            except Exception as e:
+                self.logger.exception('Failed to load extension %s.', extension)
+        self.logger.info("Done")
+
+    async def get_context(self, origin: Union[discord.Interaction, discord.Message], /, *, cls=Context) -> Context:
+        return await super().get_context(origin, cls=cls)
+
+    async def close(self) -> None:
+        await super().close()
+        # await self.session.close()
+
+    def get_logger(self, name: str):
+        return self._logger.get_logger(name)
 
     def get_audio_controller(self, guild: discord.Guild) -> audio.Controller:
         """Returns an audio controller object for a guild"""
@@ -84,45 +118,6 @@ class BotBase(commands.Bot):
         self.audio_controller[guild] = controller
 
         return controller
-
-    async def load_plugins(self):
-        self.logger.info("Loading Plugins")
-
-        if not self.plugin_path.is_dir():
-            return
-
-        extensions = [i.strip() for i in self.config.get("FILES", "extensions").split(",")]
-
-        # iterate through all modules in the plugins folder
-        for module in self.plugin_path.iterdir():
-            if module.name in extensions:
-                await self.load_plugin(self.plugin_path, module.stem)
-
-        self.logger.info("Successfully loaded all plugins")
-
-    async def load_plugin(self, path: Path, name: str):
-        self.logger.info(f"Loading plugin `{name}` from path `{path}`")
-
-        loader_details: Tuple = (
-            importlib.machinery.SourceFileLoader,
-            importlib.machinery.SOURCE_SUFFIXES
-        )
-
-        plugin_finder = importlib.machinery.FileFinder(str(path), loader_details)
-        spec = plugin_finder.find_spec(name)
-
-        await self._load_from_module_spec(spec, name)
-        self.PLUGINS.append(name)
-
-        self.logger.info(f"Done")
-
-    async def unload_plugin(self, name: str):
-        await self.unload_extension(name)
-        self.PLUGINS.remove(name)
-
-    async def reload_plugin(self, name: str):
-        await self.unload_plugin(name)
-        await self.load_plugin(self.plugin_path, name)
 
     async def is_guild_registered(self, guild_id: int) -> bool:
         if await db_utils.fetch_guild(guild_id):

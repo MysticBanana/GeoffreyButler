@@ -3,7 +3,7 @@ from discord._types import ClientT
 import random
 from core import botbase
 from discord.ext import commands
-from core.helper import interactive_menu as im
+from core.utils import interactive_menu as im
 # from core.permissions import Permission
 from data import models
 from core.permissions.decorators import *
@@ -157,32 +157,6 @@ class Permissions(commands.Cog):
                                                       "\n\n"
                                                       "Select the bot permission you want to assign the slected roles."
                                       ))
-
-
-        return
-        channel = ctx.channel
-        member = ctx.message.author
-
-        req = "Insert the roles you want to assign"
-        roles = await im.request_roles(self.bot, channel, member, req)
-
-        workaround = "\n"
-        req = f"Insert the permission level want:" \
-              f" \n * {f'{workaround}* '.join([name.name for name in conf.PermissionType])}"
-        string_level = await im.request_string(self.bot, channel, member, req)
-
-        try:
-            level = conf.PermissionType[string_level.upper()].value
-        except KeyError:
-            await self.bot.responses.send(channel, content="This was not a valid option")
-            return
-
-        permission = models.Permission(role_ids=[role.id for role in roles], level=level)
-        guild = await db_utils.fetch_guild(guild_id=ctx.guild.id)
-        permissions = models.Permissions.from_dict(guild.permissions)
-        permissions.add_permission(permission)
-
-        await db_utils.insert_guild(guild_id=ctx.guild.id, permissions=permissions.jsonify())
 
 
 async def setup(bot):

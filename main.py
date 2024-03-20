@@ -9,6 +9,7 @@ from discord import app_commands
 # not implemented yet
 def run():
     bot = Geoffrey(root_dir=Path(__file__).parent)
+    # tree = app_commands.CommandTree(Geoffrey)
     bot.run()
 
 

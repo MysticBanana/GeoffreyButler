@@ -41,8 +41,6 @@ class Geoffrey(botbase.BotBase):
                                                    f"\nDiscord bot by MysticBanana",
                                        )
 
-        # self._tree = app_commands.CommandTree(self)
-
     @property
     def db_session(self) -> AsyncSession:
         return self.session()
@@ -57,6 +55,7 @@ class Geoffrey(botbase.BotBase):
 
 
     async def setup_hook(self) -> None:
+        await super().setup_hook()
 
         self.logger.info("Setting up database")
         engine = create_async_engine(
@@ -71,18 +70,6 @@ class Geoffrey(botbase.BotBase):
         # expire_on_commit=False will prevent attributes from being expired
         # after commit.
         self.session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-        self.logger.info("Done")
-
-        self.logger.info("Loading Plugins")
-        await self.load_plugins()
-        self.logger.info("Done")
-
-        self.logger.info("Setting up Cog default modules")
-        # setup your commands
-        await cogs.example_cog.setup(self)
-        await cogs.events.setup(self)
-        await cogs.general.setup(self)
-        await cogs.permissions.setup(self)
         self.logger.info("Done")
 
         for name, view in inspect.getmembers(messages.views):

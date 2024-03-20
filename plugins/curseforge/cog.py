@@ -5,7 +5,7 @@ from core.audio import audiocontroller
 from . import config
 from core import messages
 from core.messages import view_controller
-from core import helper
+from core import utils
 import helper as _helper
 from typing import Optional, Tuple, Union, Dict, List
 import discord
@@ -28,30 +28,30 @@ class CurseForgeCog(commands.Cog):
         extension_controller = self.bot.get_extension_config_handler(ctx.guild, config.EXTENSION_NAME)
 
         req = "Insert the game ID (e.g. Minecraft -> 432)"
-        game_id = await helper.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
+        game_id = await utils.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
 
         req = "Insert the addon ID (e.g. 'DayOfMind' -> 398186)"
-        addon_id = await helper.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
+        addon_id = await utils.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
 
         req = "Do you want a channel for notifications? (yes/no)"
-        notify = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+        notify = await utils.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
         channel = None
         role = None
 
         if notify:
             req = "Insert the channel for notifications please"
-            channel = await helper.interactive_menu.request_channel(self.bot, ctx.channel, ctx.author, req)
+            channel = await utils.interactive_menu.request_channel(self.bot, ctx.channel, ctx.author, req)
 
             if len(channel) > 0:
                 channel = channel[0].id
 
                 req = "Do you want a special role that gets mentioned on each update (default 'everyone')? (yes/no)"
-                mention_role = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+                mention_role = await utils.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
                 if mention_role:
                     req = "Insert the role you want to mention on each update"
-                    role = await helper.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
+                    role = await utils.interactive_menu.request_roles(self.bot, ctx.channel, ctx.author, req)
 
                     if len(role) > 0:
                         role = role[0].id
@@ -82,14 +82,14 @@ class CurseForgeCog(commands.Cog):
 
         if game_id == 0:
             req = "Insert the game ID"
-            game_id = await helper.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
+            game_id = await utils.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
 
         if addon_id == 0:
             req = "Insert the addon ID"
-            addon_id = await helper.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
+            addon_id = await utils.interactive_menu.request_int(self.bot, ctx.channel, ctx.author, req)
 
         req = f"Are are about to delete the mod with the id {addon_id} (Game: {game_id}). Are you sure? (yes/no)"
-        sure = await helper.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
+        sure = await utils.interactive_menu.request_bool(self.bot, ctx.channel, ctx.author, req)
 
         if not sure:
             return
